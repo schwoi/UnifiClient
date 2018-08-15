@@ -118,8 +118,23 @@ namespace UnifiApi
             return records;
         }
 
+        /// <summary>
+        /// Gets the system information.
+        /// </summary>
+        /// <returns>BaseResponse&lt;SystemInfo&gt;</returns>
+        public async Task<BaseResponse<SystemInfo>> GetSystemInfo()
+        {
+            var path = $"api/s/{Site}/stat/sysinfo";
+
+            var oJsonObject = new JObject();
+
+            var response = await ExecuteJsonCommandAsync(path, oJsonObject);
+            var records = JsonConvert.DeserializeObject<BaseResponse<SystemInfo>>(response.Result);
+            return records;
+        }
+
         #region Guest Methods
-        
+
         /// <summary>
         /// Authorize a guest client device.
         /// </summary>
