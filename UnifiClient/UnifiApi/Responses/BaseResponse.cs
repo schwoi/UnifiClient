@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace UnifiApi.Responses
@@ -19,7 +20,7 @@ namespace UnifiApi.Responses
         public bool? Up { get; set; }
 
         [JsonProperty(PropertyName = "uuid")]
-        public string Uuid { get; set; }
+        public Guid Uuid { get; set; }
     }
 
     public class BaseResponse<T>
