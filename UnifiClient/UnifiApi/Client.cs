@@ -343,6 +343,45 @@ namespace UnifiApi
             return records; // response;
         }
 
+        /// <summary>
+        /// Add or Modify a client device note.
+        /// </summary>
+        /// <param name="clientMac">The client mac.</param>
+        /// <param name="note">The note.</param>
+        /// <returns>BoolResponse.</returns>
+        /// <remarks>When note is empty or not set, the existing note for the user will be removed and "noted" attribute set to false</remarks>
+        public async Task<BoolResponse> AddClientNoteAsync(string clientMac, string note = "")
+        {
+            return await SetClientNoteAsync(clientMac, note);
+        }
+
+        /// <summary>
+        /// Removes the client note.
+        /// </summary>
+        /// <param name="clientMac">The client mac.</param>
+        /// <returns>BoolResponse.</returns>
+        public async Task<BoolResponse> RemoveClientNoteAsync(string clientMac)
+        {
+            return await SetClientNoteAsync(clientMac, "");
+        }
+
+        /// <summary>
+        /// Add/modify/remove a client device note.
+        /// </summary>
+        /// <param name="clientMac">The client mac.</param>
+        /// <param name="note">The note to be applied to the user device.</param>
+        /// <returns>BoolResponse.</returns>
+        /// <remarks>When note is empty or not set, the existing note for the user will be removed and "noted" attribute set to false</remarks>
+        public async Task<BoolResponse> SetClientNoteAsync(string clientMac, string note)
+        {
+            var path = $"api/s/{Site}/upd/user/{clientMac}";
+
+            var oJsonObject = new JObject();
+            oJsonObject.Add("note", note);
+            oJsonObject.Add("noted", !string.IsNullOrEmpty(note));
+
+            return await ExecuteBoolCommandAsync(path, oJsonObject);
+        }
 
         #endregion
 
