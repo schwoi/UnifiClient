@@ -241,6 +241,32 @@ namespace UnifiApi
             return records; // response;
         }
 
+        public async Task<BaseResponse<UnifiClient>> ListOnlineClientsAsync(string clientMac = "")
+        {
+            var path = $"api/s/{Site}/stat/sta/{clientMac}";
+
+            var oJsonObject = new JObject();
+
+            var response = await ExecuteJsonCommandAsync(path, oJsonObject);
+            var records = JsonConvert.DeserializeObject<BaseResponse<UnifiClient>>(response.Result);
+            return records;
+        }
+
+        public async Task<BaseResponse<ClientList>> ListAllClients(int historyHours = 8760)
+        {
+            var path = $"api/s/{Site}/stat/alluser";
+
+            var oJsonObject = new JObject();
+            oJsonObject.Add("type", "all");
+            oJsonObject.Add("conn", "all");
+            oJsonObject.Add("within", historyHours);
+
+            var response = await ExecuteJsonCommandAsync(path, oJsonObject);
+            var records = JsonConvert.DeserializeObject<BaseResponse<ClientList>>(response.Result);
+            return records; // response;
+        }
+
+
         #endregion
 
         #region Commands
