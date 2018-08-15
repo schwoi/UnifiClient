@@ -57,6 +57,7 @@ namespace UnifiApiTests
 
                 var result = await unifiClient.GetControllerStatusAsync();
                 result.ShouldNotBeNull();
+                result.Meta.Rc.ToLower().ShouldBe("ok");
                 result.Meta.Up.ShouldBe(true);
                 result.Meta.Uuid.ShouldNotBe(Guid.Empty);
             }
@@ -71,6 +72,8 @@ namespace UnifiApiTests
 
                 var result = await unifiClient.ListSitesAsync();
                 result.ShouldNotBeNull();
+                result.Meta.Rc.ToLower().ShouldBe("ok");
+                result.Data.Count.ShouldBeGreaterThan(0);
             }
         }
         [Fact]
@@ -83,6 +86,7 @@ namespace UnifiApiTests
 
                 var result = await unifiClient.GetSystemInfoAsync();
                 result.ShouldNotBeNull();
+                result.Meta.Rc.ToLower().ShouldBe("ok");
                 result.Data.Count.ShouldBeGreaterThanOrEqualTo(1);
                 result.Data.First().Name.Length.ShouldBeGreaterThan(0);
             }
@@ -98,9 +102,11 @@ namespace UnifiApiTests
 
                 var result = await unifiClient.ClientDetailsAsync("{set mac address}");
                 result.ShouldNotBeNull();
+                result.Meta.Rc.ToLower().ShouldBe("ok");
+                result.Data.Count.ShouldBeGreaterThan(0);
             }
         }
-        [Fact]
+        [Fact(Skip = "Needs MAC Address Set")]
         public async Task ShouldGetClientLogins()
         {
             using (var unifiClient = new Client(_url))
@@ -110,6 +116,8 @@ namespace UnifiApiTests
 
                 var result = await unifiClient.ShowClientLoginsAsync("{set mac address}");
                 result.ShouldNotBeNull();
+                result.Meta.Rc.ToLower().ShouldBe("ok");
+                result.Data.Count.ShouldBeGreaterThan(0);
             }
         }
         [Fact]
@@ -122,6 +130,8 @@ namespace UnifiApiTests
 
                 var result = await unifiClient.ListAllClients();
                 result.ShouldNotBeNull();
+                result.Meta.Rc.ToLower().ShouldBe("ok");
+                result.Data.Count.ShouldBeGreaterThan(0);
             }
         }
 
@@ -135,6 +145,7 @@ namespace UnifiApiTests
 
                 var result = await unifiClient.ListOnlineClientsAsync();
                 result.ShouldNotBeNull();
+                result.Meta.Rc.ToLower().ShouldBe("ok");
                 result.Data.ShouldNotBeNull();
                 result.Data.Count.ShouldBeGreaterThanOrEqualTo(1);
             }
@@ -152,6 +163,7 @@ namespace UnifiApiTests
 
                 var result = await unifiClient.ListOnlineClientsAsync(onlineClientsResult.Data.First().Mac);
                 result.ShouldNotBeNull();
+                result.Meta.Rc.ToLower().ShouldBe("ok");
                 result.Data.ShouldNotBeNull();
                 result.Data.Count.ShouldBe(1);
             }
@@ -189,6 +201,27 @@ namespace UnifiApiTests
 
                 var result = await unifiClient.UnblockClientAsync(onlineClientsResult.Data.First().Mac);
                 result.Result.ShouldBe(true);
+            }
+        }
+
+        [Fact(Skip = "Demo Site doesn't return notes / doesn't save notes")]
+        public async Task ShouldBeAbleToAddClientNote()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var onlineClientsResult = await unifiClient.ListAllClients();
+                var macAddress = onlineClientsResult.Data.First().Mac;
+                var noteValue = $"Note Added {DateTime.Now:s}";
+                var addNoteResult = await unifiClient.AddClientNoteAsync(macAddress, noteValue);
+                addNoteResult.Result.ShouldBe(true);
+
+                var checkNoteResult = await unifiClient.ClientDetailsAsync(macAddress);
+                checkNoteResult.Meta.Rc.ToLower().ShouldBe("ok");
+                checkNoteResult.Data.ShouldNotBeNull();
+                checkNoteResult.Data.First().Noted.ShouldBe(true);
             }
         }
     }
