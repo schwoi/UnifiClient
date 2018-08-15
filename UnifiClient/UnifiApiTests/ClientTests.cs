@@ -124,5 +124,37 @@ namespace UnifiApiTests
                 result.ShouldNotBeNull();
             }
         }
+
+        [Fact]
+        public async Task ShouldGetAllOnlineClients()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ListOnlineClientsAsync();
+                result.ShouldNotBeNull();
+                result.Data.ShouldNotBeNull();
+                result.Data.Count.ShouldBeGreaterThanOrEqualTo(1);
+            }
+        }
+
+        [Fact]
+        public async Task ShouldGetSpecificOnlineClient()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var onlineClientsResult = await unifiClient.ListOnlineClientsAsync();
+
+                var result = await unifiClient.ListOnlineClientsAsync(onlineClientsResult.Data.First().Mac);
+                result.ShouldNotBeNull();
+                result.Data.ShouldNotBeNull();
+                result.Data.Count.ShouldBe(1);
+            }
+        }
     }
 }
