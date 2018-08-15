@@ -187,7 +187,7 @@ namespace UnifiApi
         /// </summary>
         /// <param name="clientMac">The client MAC address.</param>
         /// <returns>BoolResponse. true on success</returns>
-        public async Task<BoolResponse> ExtendGuest(string clientMac)
+        public async Task<BoolResponse> ExtendGuestAsync(string clientMac)
         {
             var path = $"api/s/{Site}/cmd/hotspot";
 
