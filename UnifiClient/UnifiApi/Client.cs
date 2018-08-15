@@ -215,6 +215,11 @@ namespace UnifiApi
             return await ExecuteBoolCommandAsync(path, oJsonObject);
         }
 
+        /// <summary>
+        /// List guest devices
+        /// </summary>
+        /// <param name="within">time frame in hours to go back to list guests with valid access (default is 8760 hours or 1 year)</param>
+        /// <returns>returns an array of guest device objects with valid access</returns>
         public async Task<BaseResponse<Guest>> ListGuestsAsync(int within = 8760)
         {
             var path = $"api/s/{Site}/stat/guest";
@@ -231,6 +236,11 @@ namespace UnifiApi
         #region Client Methods
 
 
+        /// <summary>
+        /// Get details for a single client device
+        /// </summary>
+        /// <param name="clientMac">The client MAC Address.</param>
+        /// <returns>returns an object with the client device information</returns>
         public async Task<BaseResponse<ClientDevice>> ClientDetailsAsync(string clientMac)
         {
             var path = $"api/s/{Site}/stat/user/{clientMac}";
@@ -242,6 +252,12 @@ namespace UnifiApi
 
         }
 
+        /// <summary>
+        /// Show latest 'n' login sessions for a single client device
+        /// </summary>
+        /// <param name="clientMac">Client MAC address</param>
+        /// <param name="limit">maximum number of sessions to get (default value is 5)</param>
+        /// <returns>returns an array of latest login session objects for given client device</returns>
         public async Task<BaseResponse<ClientLogin>> ShowClientLoginsAsync(string clientMac, int? limit = null)
         {
             var path = $"api/s/{Site}/stat/session";
@@ -256,6 +272,11 @@ namespace UnifiApi
             return records; // response;
         }
 
+        /// <summary>
+        /// List online client device(s)
+        /// </summary>
+        /// <param name="clientMac">Client MAC address</param>
+        /// <returns>returns an array of online client device objects, or in case of a single device request, returns a single client device object.</returns>
         public async Task<BaseResponse<UnifiClient>> ListOnlineClientsAsync(string clientMac = "")
         {
             var path = $"api/s/{Site}/stat/sta/{clientMac}";
@@ -267,14 +288,23 @@ namespace UnifiApi
             return records;
         }
 
-        public async Task<BaseResponse<ClientList>> ListAllClients(int historyHours = 8760)
+        /// <summary>
+        /// List all client devices ever connected to the site.
+        /// </summary>
+        /// <remarks>
+        /// within is only used to select clients that were online within that period,
+        /// the returned stats per client are all-time totals, irrespective of the value of within
+        /// </remarks>
+        /// <param name="within">hours to go back (default is 8760 hours or 1 year)</param>
+        /// <returns>returns an array of client device objects</returns>
+        public async Task<BaseResponse<ClientList>> ListAllClients(int within = 8760)
         {
             var path = $"api/s/{Site}/stat/alluser";
 
             var oJsonObject = new JObject();
             oJsonObject.Add("type", "all");
             oJsonObject.Add("conn", "all");
-            oJsonObject.Add("within", historyHours);
+            oJsonObject.Add("within", within);
 
             var response = await ExecuteJsonCommandAsync(path, oJsonObject);
             var records = JsonConvert.DeserializeObject<BaseResponse<ClientList>>(response.Result);
