@@ -57,8 +57,12 @@ namespace UnifiApi
             }
         }
 
-        public void Dispose()
+        public async void Dispose()
         {
+            if (IsLoggedIn)
+                await LogoutAsync();
+
+            httpClient.Dispose();
         }
 
 
@@ -77,7 +81,6 @@ namespace UnifiApi
             oJsonObject.Add("password", password);
 
             var returnResult = await ExecuteBoolCommandAsync(path, oJsonObject);
-            //var returnResult = ExecuteBoolCommand(path, oJsonObject);
             IsLoggedIn = returnResult.Result;
 
             if (IsLoggedIn)
@@ -106,7 +109,7 @@ namespace UnifiApi
         /// Gets the controller status.
         /// </summary>
         /// <returns>UnifiApi.Models.BaseResponse&lt;UnifiApi.Models.UnifiClient&gt;.</returns>
-        public async Task<BaseResponse<UnifiClient>> GetControllerStatusAsync()
+        public async Task<BaseResponse> GetControllerStatusAsync()
         {
             var path = $"status";
 
@@ -114,7 +117,7 @@ namespace UnifiApi
 
             var response = await ExecuteJsonCommandAsync(path, oJsonObject);
 
-            var records = JsonConvert.DeserializeObject<BaseResponse<UnifiClient>>(response.Result);
+            var records = JsonConvert.DeserializeObject<BaseResponse>(response.Result);
             return records;
         }
 
@@ -122,15 +125,14 @@ namespace UnifiApi
         /// Gets the system information.
         /// </summary>
         /// <returns>BaseResponse&lt;SystemInfo&gt;</returns>
-        public async Task<BaseResponse<SystemInfo>> GetSystemInfo()
+        public async Task<BaseResponse<SystemInfo>> GetSystemInfoAsync()
         {
             var path = $"api/s/{Site}/stat/sysinfo";
 
             var oJsonObject = new JObject();
 
             var response = await ExecuteJsonCommandAsync(path, oJsonObject);
-            var records = JsonConvert.DeserializeObject<BaseResponse<SystemInfo>>(response.Result);
-            return records;
+            return JsonConvert.DeserializeObject<BaseResponse<SystemInfo>>(response.Result);
         }
 
         #region Guest Methods
@@ -211,13 +213,29 @@ namespace UnifiApi
         }
         #endregion
 
-        #region Commands
+        #region Client Methods
+
+
+        public async Task<BaseResponse<ClientDevice>> ClientDetailsAsync(string clientMac)
+        {
+            var path = $"api/s/{Site}/stat/user/{clientMac}";
+
+            var oJsonObject = new JObject();
+
+            var response = await ExecuteJsonCommandAsync(path, oJsonObject);
+            return JsonConvert.DeserializeObject<BaseResponse<ClientDevice>>(response.Result);
+
+        }
+
+        #endregion
+
+    #region Commands
 
 
 
 
 
-        private async Task<BoolResponse> ExecuteBoolCommandAsync(string path, JObject jsonData)
+    private async Task<BoolResponse> ExecuteBoolCommandAsync(string path, JObject jsonData)
         {
             var returnResponse = new BoolResponse();
 
