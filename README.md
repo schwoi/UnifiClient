@@ -15,6 +15,8 @@ Currently this library supports the following methods.
  - ExtendGuest
  - ListGuests
  - ClientDetail
+ - BlockClient
+ - UnblockClient
  - ShowClientLogins
  - ListOnlineClients
  - ListAllClients

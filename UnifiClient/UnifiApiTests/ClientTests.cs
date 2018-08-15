@@ -156,5 +156,40 @@ namespace UnifiApiTests
                 result.Data.Count.ShouldBe(1);
             }
         }
+
+        [Fact]
+        public async Task ShouldBeAbleToBlockClient()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var onlineClientsResult = await unifiClient.ListOnlineClientsAsync();
+
+                var result = await unifiClient.BlockClientAsync(onlineClientsResult.Data.First().Mac);
+                result.Result.ShouldBe(true);
+
+                await unifiClient.UnblockClientAsync(onlineClientsResult.Data.First().Mac);
+            }
+        }
+
+        [Fact]
+        public async Task ShouldBeAbleToUnblockClient()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var onlineClientsResult = await unifiClient.ListOnlineClientsAsync();
+
+                var blockResult = await unifiClient.BlockClientAsync(onlineClientsResult.Data.First().Mac);
+                blockResult.Result.ShouldBe(true);
+
+                var result = await unifiClient.UnblockClientAsync(onlineClientsResult.Data.First().Mac);
+                result.Result.ShouldBe(true);
+            }
+        }
     }
 }

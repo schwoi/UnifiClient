@@ -237,6 +237,38 @@ namespace UnifiApi
 
 
         /// <summary>
+        /// Blocks a client device.
+        /// </summary>
+        /// <param name="clientMac">The client MAC address.</param>
+        /// <returns>BoolResponse.</returns>
+        public async Task<BoolResponse> BlockClientAsync(string clientMac)
+        {
+            var path = $"api/s/{Site}/cmd/stamgr";
+
+            var oJsonObject = new JObject();
+            oJsonObject.Add("cmd", "block-sta");
+            oJsonObject.Add("mac", clientMac);
+
+            return await ExecuteBoolCommandAsync(path, oJsonObject);
+        }
+
+        /// <summary>
+        /// Unblocks a client device.
+        /// </summary>
+        /// <param name="clientMac">The client MAC address.</param>
+        /// <returns>BoolResponse.</returns>
+        public async Task<BoolResponse> UnblockClientAsync(string clientMac)
+        {
+            var path = $"api/s/{Site}/cmd/stamgr";
+
+            var oJsonObject = new JObject();
+            oJsonObject.Add("cmd", "unblock-sta");
+            oJsonObject.Add("mac", clientMac);
+
+            return await ExecuteBoolCommandAsync(path, oJsonObject);
+        }
+
+        /// <summary>
         /// Get details for a single client device
         /// </summary>
         /// <param name="clientMac">The client MAC Address.</param>
