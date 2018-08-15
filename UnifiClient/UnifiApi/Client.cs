@@ -227,15 +227,29 @@ namespace UnifiApi
 
         }
 
+        public async Task<BaseResponse<ClientLogin>> ShowClientLoginsAsync(string clientMac, int? limit = null)
+        {
+            var path = $"api/s/{Site}/stat/session";
+
+            var oJsonObject = new JObject();
+            oJsonObject.Add("mac", clientMac);
+            oJsonObject.Add("_limit", limit == null ? 5 : limit);
+            oJsonObject.Add("_sort", "-assoc_time");
+
+            var response = await ExecuteJsonCommandAsync(path, oJsonObject);
+            var records = JsonConvert.DeserializeObject<BaseResponse<ClientLogin>>(response.Result);
+            return records; // response;
+        }
+
         #endregion
 
-    #region Commands
+        #region Commands
 
 
 
 
 
-    private async Task<BoolResponse> ExecuteBoolCommandAsync(string path, JObject jsonData)
+        private async Task<BoolResponse> ExecuteBoolCommandAsync(string path, JObject jsonData)
         {
             var returnResponse = new BoolResponse();
 
