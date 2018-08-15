@@ -11,7 +11,7 @@ Currently this library supports the following methods.
  - GetSystemInfo
  - ListSites
  - AuthorizeGuest
- - UnauthorizeGurst
+ - UnauthorizeGuest
  - ExtendGuest
  - ListGuests
  - ClientDetail
@@ -20,6 +20,9 @@ Currently this library supports the following methods.
  - ShowClientLogins
  - ListOnlineClients
  - ListAllClients
+ - AddClientNote (Alias of SetClientNote)
+ - RemoveClientNote (Alias of SetClientNote)
+ - SetClientNote
 
 ## Requirements
 
