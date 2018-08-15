@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
+using UnifiApi.Helpers;
 
 namespace UnifiApi.Models
 {
@@ -11,7 +13,8 @@ namespace UnifiApi.Models
         public string AuthorizedBy { get; set; }
 
         [JsonProperty(PropertyName = "end")]
-        public int End { get; set; }
+        public int EndSeconds { get; set; }
+        public DateTime End => EndSeconds.ToLocalDateTime();
 
         [JsonProperty(PropertyName = "expired")]
         public bool Expired { get; set; }
@@ -23,7 +26,8 @@ namespace UnifiApi.Models
         public string SiteId { get; set; }
 
         [JsonProperty(PropertyName = "start")]
-        public int Start { get; set; }
+        public int StartSeconds { get; set; }
+        public DateTime Start => StartSeconds.ToLocalDateTime();
 
         [JsonProperty(PropertyName = "unauthorized_by")]
         public string UnauthorizedBy { get; set; }
