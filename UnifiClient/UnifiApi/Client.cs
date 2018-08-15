@@ -135,6 +135,21 @@ namespace UnifiApi
             return JsonConvert.DeserializeObject<BaseResponse<SystemInfo>>(response.Result);
         }
 
+                /// <summary>
+        /// List sites
+        /// </summary>
+        /// <returns>returns a list sites hosted on this controller with some details</returns>
+        public async Task<BaseResponse<Site>> ListSitesAsync()
+        {
+            var path = $"api/self/sites";
+
+            var oJsonObject = new JObject();
+            
+            var response = await ExecuteGetCommandAsync(path);
+            return JsonConvert.DeserializeObject<BaseResponse<Site>>(response.Result);
+            
+        }
+
         #region Guest Methods
 
         /// <summary>
@@ -272,9 +287,6 @@ namespace UnifiApi
         #region Commands
 
 
-
-
-
         private async Task<BoolResponse> ExecuteBoolCommandAsync(string path, JObject jsonData)
         {
             var returnResponse = new BoolResponse();
@@ -316,6 +328,24 @@ namespace UnifiApi
         {
             var returnResponse = new JsonResponse();
             var response = await httpClient.PostAsync(path, new StringContent(jsonData.ToString(), Encoding.UTF8, _contentType));
+            returnResponse.StatusCode = response.StatusCode;
+
+            if (response.IsSuccessStatusCode)
+            {
+                returnResponse.Result = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            }
+            else
+            {
+                returnResponse.Response = response.ReasonPhrase;
+            }
+
+            return returnResponse;
+        }
+
+        private async Task<JsonResponse> ExecuteGetCommandAsync(string path)
+        {
+            var returnResponse = new JsonResponse();
+            var response = await httpClient.GetAsync(path);
             returnResponse.StatusCode = response.StatusCode;
 
             if (response.IsSuccessStatusCode)
