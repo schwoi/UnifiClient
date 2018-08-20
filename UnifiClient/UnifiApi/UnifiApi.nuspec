@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <id>UnifiApi</id>
+    <version>1.0.0.0</version>
+    <authors>Brent Howard</authors>
+    <summary>This is .NET Standard wrapper library for the Ubiquiti Unifi Controller.</summary>
+    <description></description>
+    <language>en-US</language>
+    <licenseUrl>https://github.com/schwoi/UnifiClient/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/schwoi/UnifiClient</projectUrl>
+    <tags>Ubiquiti Unifi Wifi</tags>
+  </metadata>
+</package>
