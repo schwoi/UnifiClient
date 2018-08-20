@@ -23,6 +23,11 @@ Currently this library supports the following methods.
  - AddClientNote (Alias of SetClientNote)
  - RemoveClientNote (Alias of SetClientNote)
  - SetClientNote
+ - CreateUserGroup
+ - DeleteUserGroup
+ - UpdateUserGroup
+ - AssignClientToUserGroup
+ - ListUserGroups
 
 ## Requirements
 
