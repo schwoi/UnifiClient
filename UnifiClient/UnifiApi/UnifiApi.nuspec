@@ -4,8 +4,8 @@
     <id>UnifiApi</id>
     <version>1.0.0.0</version>
     <authors>Brent Howard</authors>
-    <summary>This is .NET Standard wrapper library for the Ubiquiti Unifi Controller.</summary>
-    <description></description>
+    <summary>.NET Standard wrapper library for the Ubiquiti Unifi Controller.</summary>
+    <description>This is .NET Standard wrapper library for the Ubiquiti Unifi Controller. It allows you to manage guests and clients aswell as groups.</description>
     <language>en-US</language>
     <licenseUrl>https://github.com/schwoi/UnifiClient/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/schwoi/UnifiClient</projectUrl>
