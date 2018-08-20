@@ -476,9 +476,8 @@ namespace UnifiApi
             var oJsonObject = new JObject();
 
             var response = await ExecuteJsonCommandAsync(path, oJsonObject);
-            //TODO Create Model for JSON
-            var records = JsonConvert.DeserializeObject<BaseResponse<UserGroup>>(response.Result);
-            return records;
+
+            return  JsonConvert.DeserializeObject<BaseResponse<UserGroup>>(response.Result);
         }
 
         #endregion
