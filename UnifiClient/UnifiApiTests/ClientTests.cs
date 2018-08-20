@@ -11,12 +11,10 @@ namespace UnifiApiTests
 {
     public class ClientTests
     {
-        //private const string _url = "https://demo.ubnt.com/";
-        //private const string _user = "superadmin";
-        //private const string _pass = "pq73KF59";
-        private const string _url = "https://unifi.schwoi.com/";
-    private const string _pass = "bkCDbI4AXGt#NE";
-        private const string _user = "admin";
+        private const string _url = "https://demo.ubnt.com/";
+        private const string _user = "superadmin";
+        private const string _pass = "pq73KF59";
+        
         [Fact]
         public async Task CanAuthenticate()
         {
@@ -226,7 +224,7 @@ namespace UnifiApiTests
                 checkNoteResult.Data.First().Noted.ShouldBe(true);
             }
         }
-        [Fact]
+        [Fact(Skip = "Fail's on Default Demo Site")]
         public async Task ShouldBeAbleToCreateUserGroup()
         {
             using (var unifiClient = new Client(_url))
@@ -245,7 +243,7 @@ namespace UnifiApiTests
                 var deleteResult = await unifiClient.DeleteUserGroupAsync(result.Data.First().Id);
             }
         }
-        [Fact]
+        [Fact(Skip = "Fail's on Default Demo Site")]
         public async Task ShouldBeAbleToUpdateUserGroup()
         {
             using (var unifiClient = new Client(_url))
@@ -275,7 +273,7 @@ namespace UnifiApiTests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Fail's on Default Demo Site")]
         public async Task ShouldBeAbleToDeleteUserGroup()
         {
             using (var unifiClient = new Client(_url))
@@ -294,7 +292,7 @@ namespace UnifiApiTests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Fail's on Default Demo Site")]
         public async Task ShouldBeAbleToAssignDeviceToUserGroup()
         {
             using (var unifiClient = new Client(_url))
