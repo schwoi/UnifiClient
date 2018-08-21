@@ -1,19 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Shouldly;
 using UnifiApi;
+using UnifiApi.Models;
+using UnifiApiTests.Models;
 using Xunit;
 
 namespace UnifiApiTests
 {
     public class ClientTests
     {
-        private const string _url = "https://demo.ubnt.com/";
-        private const string _user = "superadmin";
-        private const string _pass = "pq73KF59";
+        private readonly string _url ;
+        private readonly string _user;
+        private readonly string _pass ;
+
+        public ClientTests()
+        {
+            var settings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(@"settings.json"));
+            _url = settings.Url;
+            _user = settings.User;
+            _pass = settings.Pass;
+        }
         
         [Fact]
         public async Task CanAuthenticate()
@@ -328,6 +340,88 @@ namespace UnifiApiTests
                 result.Meta.Rc.ShouldBe("ok");
                 result.Data.Count.ShouldBeGreaterThanOrEqualTo(1);
                 result.Data.First().Id.ShouldNotBeEmpty();
+            }
+        }
+
+        [Fact]
+        public async Task ShouldBeAbleToCreateFirewallGroup()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.CreateFirewallGroupAsync("CreateTest", GroupType.AddressGroup, new List<string>{ "1.0.0.1" });
+                result.Meta.Rc.ShouldBe("ok");
+                result.Data.Count.ShouldBeGreaterThanOrEqualTo(1);
+                var fwGroup = result.Data.First();
+                fwGroup.Id.ShouldNotBeEmpty();
+                fwGroup.Name.ShouldBe("CreateTest");
+
+                var deleteResult = await unifiClient.DeleteFirewallGroupAsync(fwGroup.Id);
+            }
+        }
+        [Fact]
+        public async Task ShouldBeAbleToUpdateFirewallGroupName()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var createResult = await unifiClient.CreateFirewallGroupAsync("UpdateTest", GroupType.AddressGroup, new List<string> { "1.0.0.1" });
+                createResult.Meta.Rc.ShouldBe("ok");
+                createResult.Data.Count.ShouldBeGreaterThanOrEqualTo(1);
+                var createdGroup = createResult.Data.First();
+
+                var result = await unifiClient.UpdateFirewallGroupAsync(createdGroup.Id, createdGroup.SiteId, "UpdatedTest", createdGroup.GroupType, createdGroup.GroupMembers);
+                result.Meta.Rc.ShouldBe("ok");
+                result.Data.Count.ShouldBeGreaterThanOrEqualTo(1);
+                var updatedGroup = result.Data.First();
+                updatedGroup.Name.ShouldBe("UpdatedTest");
+
+                var deleteResult = await unifiClient.DeleteFirewallGroupAsync(createdGroup.Id);
+            }
+        }
+        [Fact]
+        public async Task ShouldBeAbleToGetFirewallGroups()
+        {
+            using (var unifiClient = new Client(_url,null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var createResult = await unifiClient.CreateFirewallGroupAsync("ListTest", GroupType.AddressGroup, new List<string> { "1.0.0.1" });
+                createResult.Meta.Rc.ShouldBe("ok");
+                createResult.Data.Count.ShouldBeGreaterThanOrEqualTo(1);
+                var createdGroup = createResult.Data.First();
+
+                var result = await unifiClient.ListFirewallGroupsAsync();
+                result.Meta.Rc.ShouldBe("ok");
+                result.Data.Count.ShouldBeGreaterThanOrEqualTo(1);
+                var fwGroup = result.Data.FirstOrDefault(x => x.Name.Equals("ListTest"));
+                fwGroup.ShouldNotBeNull();
+                fwGroup.Id.ShouldBe(createdGroup.Id);
+
+                var deleteResult = await unifiClient.DeleteFirewallGroupAsync(createdGroup.Id);
+
+            }
+        }
+
+        [Fact]
+        public async Task ShouldBeAbleToDeleteFirewallGroup()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var createResult = await unifiClient.CreateFirewallGroupAsync("DeleteTest", GroupType.AddressGroup, new List<string> { "1.0.0.2" });
+                createResult.Meta.Rc.ShouldBe("ok");
+                var fwGroup = createResult.Data.First();
+
+                var result = await unifiClient.DeleteFirewallGroupAsync(fwGroup.Id);
+                result.Result.ShouldBe(true);
             }
         }
     }
