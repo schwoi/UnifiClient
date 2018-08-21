@@ -140,13 +140,26 @@ namespace UnifiApiTests
                 var loginResult = await unifiClient.LoginAsync(_user, _pass);
                 loginResult.Result.ShouldBeTrue();
 
-                var result = await unifiClient.ListAllClients();
+                var result = await unifiClient.ListAllClientsAsync();
                 result.ShouldNotBeNull();
                 result.Meta.Rc.ToLower().ShouldBe("ok");
                 result.Data.Count.ShouldBeGreaterThan(0);
             }
         }
+        [Fact]
+        public async Task ShouldGetAllKnownClients()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
 
+                var result = await unifiClient.ListKnownClientsAsync();
+                result.ShouldNotBeNull();
+                result.Meta.Rc.ToLower().ShouldBe("ok");
+                result.Data.Count.ShouldBeGreaterThan(0);
+            }
+        }
         [Fact]
         public async Task ShouldGetAllOnlineClients()
         {
@@ -224,7 +237,7 @@ namespace UnifiApiTests
                 var loginResult = await unifiClient.LoginAsync(_user, _pass);
                 loginResult.Result.ShouldBeTrue();
 
-                var onlineClientsResult = await unifiClient.ListAllClients();
+                var onlineClientsResult = await unifiClient.ListAllClientsAsync();
                 var macAddress = onlineClientsResult.Data.First().Mac;
                 var noteValue = $"Note Added {DateTime.Now:s}";
                 var addNoteResult = await unifiClient.AddClientNoteAsync(macAddress, noteValue);
@@ -422,6 +435,49 @@ namespace UnifiApiTests
 
                 var result = await unifiClient.DeleteFirewallGroupAsync(fwGroup.Id);
                 result.Result.ShouldBe(true);
+            }
+        }
+
+        [Fact]
+        public async Task ShouldBeAbleToListHealth()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ListHealthAsync();
+                result.Meta.Rc.ShouldBe("ok");
+                result.Data.ShouldNotBeNull();
+                result.Data.Count.ShouldBeGreaterThanOrEqualTo(5);
+            }
+        }
+        [Fact]
+        public async Task ShouldBeAbleToListDashboardMetricsHrly()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ListDashboardAsync();
+                result.Meta.Rc.ShouldBe("ok");
+                result.Data.ShouldNotBeNull();
+                result.Data.Count.ShouldBeInRange(24, 25);
+            }
+        }
+        [Fact]
+        public async Task ShouldBeAbleToListDashboardMetrics5Min()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ListDashboardAsync(true);
+                result.Meta.Rc.ShouldBe("ok");
+                result.Data.ShouldNotBeNull();
+                result.Data.Count.ShouldBeInRange(280, 292);
             }
         }
     }

@@ -331,7 +331,7 @@ namespace UnifiApi
         /// </remarks>
         /// <param name="within">hours to go back (default is 8760 hours or 1 year)</param>
         /// <returns>returns an array of client device objects</returns>
-        public async Task<BaseResponse<ClientList>> ListAllClients(int within = 8760)
+        public async Task<BaseResponse<ClientList>> ListAllClientsAsync(int within = 8760)
         {
             var path = $"api/s/{Site}/stat/alluser";
 
@@ -341,9 +341,20 @@ namespace UnifiApi
             oJsonObject.Add("within", within);
 
             var response = await ExecuteJsonCommandAsync(path, oJsonObject);
-            var records = JsonConvert.DeserializeObject<BaseResponse<ClientList>>(response.Result);
-            return records; // response;
+            return JsonConvert.DeserializeObject<BaseResponse<ClientList>>(response.Result);
         }
+
+        /// <summary>
+        /// Lists the known clients.
+        /// </summary>
+        /// <returns>returns a list of known client device</returns>
+        public async Task<BaseResponse<ClientList>> ListKnownClientsAsync()
+        {
+            var path = $"api/s/{Site}/list/user";
+
+            var response = await ExecuteGetCommandAsync(path);
+            return JsonConvert.DeserializeObject<BaseResponse<ClientList>>(response.Result);
+       }
 
         /// <summary>
         /// Add or Modify a client device note.
@@ -568,8 +579,32 @@ namespace UnifiApi
 
         #endregion
 
-        #region Commands
+        #region Stats
 
+        /// <summary>
+        /// list health metrics.
+        /// </summary>
+        /// <returns>returns an array of health metrics</returns>
+        public async Task<BaseResponse<Health>> ListHealthAsync()
+        {
+            var path = $"/api/s/{Site}/stat/health";
+
+            var response = await ExecuteGetCommandAsync(path);
+            return JsonConvert.DeserializeObject<BaseResponse<Health>>(response.Result);
+        }
+
+        public async Task<BaseResponse<DashboardMetric>> ListDashboardAsync(bool fiveMinScale = false)
+        {
+
+            var path = $"/api/s/{Site}/stat/dashboard{(fiveMinScale ? "?scale=5minutes" : "")}";
+
+            var response = await ExecuteGetCommandAsync(path);
+            return JsonConvert.DeserializeObject<BaseResponse<DashboardMetric>>(response.Result);
+        }
+
+        #endregion
+
+        #region Commands
 
         private async Task<BoolResponse> ExecuteBoolCommandAsync(string path, JObject jsonData)
         {
