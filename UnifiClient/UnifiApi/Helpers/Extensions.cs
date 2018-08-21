@@ -7,6 +7,15 @@ namespace UnifiApi.Helpers
 {
    public static class Extensions
     {
+        public static DateTime ToLocalDateTime(this double seconds)
+        {
+            return new DateTime(1970, 1, 1).AddMilliseconds(seconds).ToLocalTime();
+        }
+        public static DateTime ToUtcDateTime(this double seconds)
+        {
+            return new DateTime(1970, 1, 1).AddMilliseconds(seconds);
+        }
+
         public static DateTime ToLocalDateTime(this int seconds)
         {
             return new DateTime(1970, 1, 1).AddSeconds(seconds).ToLocalTime();
