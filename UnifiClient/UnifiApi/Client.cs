@@ -581,7 +581,7 @@ namespace UnifiApi
 
             if (response.IsSuccessStatusCode)
             {
-                var responseString = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                var responseString = await response.Content.ReadAsStringAsync();
                 var baseResponse = JsonConvert.DeserializeObject<BaseResponse>(responseString);
                 if (baseResponse.Meta.Rc == "ok")
                 {
@@ -627,7 +627,7 @@ namespace UnifiApi
 
             if (response.IsSuccessStatusCode)
             {
-                returnResponse.Result = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                returnResponse.Result = await response.Content.ReadAsStringAsync();
             }
             else
             {
@@ -645,7 +645,7 @@ namespace UnifiApi
 
             if (response.IsSuccessStatusCode)
             {
-                returnResponse.Result = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                returnResponse.Result = await response.Content.ReadAsStringAsync();
             }
             else
             {
