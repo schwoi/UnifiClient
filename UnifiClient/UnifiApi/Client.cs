@@ -398,7 +398,7 @@ namespace UnifiApi
 
         #endregion
 
-        #region Groups
+        #region Group Methods
 
         /// <summary>
         /// Create user group
@@ -494,7 +494,7 @@ namespace UnifiApi
 
         #endregion
 
-        #region Firewall
+        #region Firewall Methods
 
         /// <summary>
         /// create firewall groups as an asynchronous operation.
@@ -579,7 +579,7 @@ namespace UnifiApi
 
         #endregion
 
-        #region Stats
+        #region Stat Methods
 
         /// <summary>
         /// list health metrics.
