@@ -20,6 +20,7 @@ Currently this library supports the following methods.
  - ShowClientLogins
  - ListOnlineClients
  - ListAllClients
+ - ListKnownClients
  - AddClientNote (Alias of SetClientNote)
  - RemoveClientNote (Alias of SetClientNote)
  - SetClientNote
@@ -28,6 +29,10 @@ Currently this library supports the following methods.
  - UpdateUserGroup
  - AssignClientToUserGroup
  - ListUserGroups
+ - CreateFirewallGroup
+ - UpdateFirewallGroup
+ - DeleteFirewallGroup
+ - ListFirewallGroups
 
 ## Requirements
 

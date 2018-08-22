@@ -44,6 +44,9 @@ namespace UnifiApi.Models
         [JsonProperty(PropertyName = "noted")]
         public bool Noted { get; set; }
 
+        [JsonProperty("note")]
+        public string Note { get; set; }
+
         [JsonProperty(PropertyName = "oui")]
         public string Oui { get; set; }
 
@@ -68,6 +71,8 @@ namespace UnifiApi.Models
         [JsonProperty(PropertyName = "usergroup_id")]
         public string UsergroupId { get; set; }
 
-       
+        [JsonProperty("blocked")]
+        public bool? Blocked { get; set; }
+
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -6,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using UnifiApi.Helpers;
 using UnifiApi.Models;
 using UnifiApi.Responses;
 
@@ -329,7 +331,7 @@ namespace UnifiApi
         /// </remarks>
         /// <param name="within">hours to go back (default is 8760 hours or 1 year)</param>
         /// <returns>returns an array of client device objects</returns>
-        public async Task<BaseResponse<ClientList>> ListAllClients(int within = 8760)
+        public async Task<BaseResponse<ClientList>> ListAllClientsAsync(int within = 8760)
         {
             var path = $"api/s/{Site}/stat/alluser";
 
@@ -339,9 +341,20 @@ namespace UnifiApi
             oJsonObject.Add("within", within);
 
             var response = await ExecuteJsonCommandAsync(path, oJsonObject);
-            var records = JsonConvert.DeserializeObject<BaseResponse<ClientList>>(response.Result);
-            return records; // response;
+            return JsonConvert.DeserializeObject<BaseResponse<ClientList>>(response.Result);
         }
+
+        /// <summary>
+        /// Lists the known clients.
+        /// </summary>
+        /// <returns>returns a list of known client device</returns>
+        public async Task<BaseResponse<ClientList>> ListKnownClientsAsync()
+        {
+            var path = $"api/s/{Site}/list/user";
+
+            var response = await ExecuteGetCommandAsync(path);
+            return JsonConvert.DeserializeObject<BaseResponse<ClientList>>(response.Result);
+       }
 
         /// <summary>
         /// Add or Modify a client device note.
@@ -384,7 +397,6 @@ namespace UnifiApi
         }
 
         #endregion
-
 
         #region Groups
 
@@ -482,8 +494,117 @@ namespace UnifiApi
 
         #endregion
 
-        #region Commands
+        #region Firewall
 
+        /// <summary>
+        /// create firewall groups as an asynchronous operation.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="type">The type.</param>
+        /// <param name="members">The members.</param>
+        /// <returns>returns a list containing a single firewall group of the created firewall group on success</returns>
+        public async Task<BaseResponse<FirewallGroup>> CreateFirewallGroupAsync(string name, GroupType type, List<string> members)
+        {
+            var path = $"/api/s/{Site}/rest/firewallgroup";
+            var oJsonObject = new JObject();
+            oJsonObject.Add("name", name);
+            oJsonObject.Add("group_type", type.GetStringValue());
+            oJsonObject.Add("group_members", new JArray {members.ToArray()});
+            
+            var response = await ExecuteJsonCommandAsync(path, oJsonObject);
+            return JsonConvert.DeserializeObject<BaseResponse<FirewallGroup>>(response.Result);
+        }
+
+        /// <summary>
+        /// update firewall group.
+        /// </summary>
+        /// <param name="group">The firewall group.</param>
+        /// <returns>returns a list containing a single firewall group of the updated firewall group on success</returns>
+        public async Task<BaseResponse<FirewallGroup>> UpdateFirewallGroupAsync(FirewallGroup group)
+        {
+            var path = $"/api/s/{Site}/rest/firewallgroup/{group.Id}";
+
+            var oJsonObject = JObject.FromObject(group);
+
+            var response = await ExecuteJsonCommandAsync(path, oJsonObject, "PUT");
+            return JsonConvert.DeserializeObject<BaseResponse<FirewallGroup>>(response.Result);
+        }
+
+        /// <summary>
+        /// update firewall group.
+        /// </summary>
+        /// <param name="groupId">The group identifier.</param>
+        /// <param name="siteId">The site identifier.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="type">The type.</param>
+        /// <param name="members">The members.</param>
+        /// <returns>returns a list containing a single firewall group of the updated firewall group on success</returns>
+        public async Task<BaseResponse<FirewallGroup>> UpdateFirewallGroupAsync(string groupId, string siteId, string name, GroupType type, List<string> members)
+        {
+            return await UpdateFirewallGroupAsync(new FirewallGroup
+            {
+                Id = groupId,
+                SiteId = siteId,
+                Name = name,
+                GroupType = type,
+                GroupMembers = members
+            });
+        }
+
+        /// <summary>
+        /// delete firewall groups.
+        /// </summary>
+        /// <param name="groupId">The firewall group identifier.</param>
+        /// <returns>returns true on success</returns>
+        public async Task<BoolResponse> DeleteFirewallGroupAsync(string groupId)
+        {
+            var path = $"/api/s/{Site}/rest/firewallgroup/{groupId}";
+
+            var response = await ExecuteDeleteCommandAsync(path);
+
+            return response;
+        }
+
+        /// <summary>
+        /// list firewall groups.
+        /// </summary>
+        /// <returns>returns list of firewall groups</returns>
+        public async Task<BaseResponse<FirewallGroup>> ListFirewallGroupsAsync()
+        {
+            var path = $"/api/s/{Site}/rest/firewallgroup";
+
+            var response = await ExecuteGetCommandAsync(path);
+            return JsonConvert.DeserializeObject<BaseResponse<FirewallGroup>>(response.Result);
+        }
+
+        #endregion
+
+        #region Stats
+
+        /// <summary>
+        /// list health metrics.
+        /// </summary>
+        /// <returns>returns an array of health metrics</returns>
+        public async Task<BaseResponse<Health>> ListHealthAsync()
+        {
+            var path = $"/api/s/{Site}/stat/health";
+
+            var response = await ExecuteGetCommandAsync(path);
+            return JsonConvert.DeserializeObject<BaseResponse<Health>>(response.Result);
+        }
+
+        public async Task<BaseResponse<DashboardMetric>> ListDashboardAsync(bool fiveMinScale = false)
+        {
+
+            var path = $"/api/s/{Site}/stat/dashboard{(fiveMinScale ? "?scale=5minutes" : "")}";
+
+            var response = await ExecuteGetCommandAsync(path);
+            return JsonConvert.DeserializeObject<BaseResponse<DashboardMetric>>(response.Result);
+        }
+
+        #endregion
+
+        #region Commands
 
         private async Task<BoolResponse> ExecuteBoolCommandAsync(string path, JObject jsonData)
         {
@@ -495,7 +616,7 @@ namespace UnifiApi
 
             if (response.IsSuccessStatusCode)
             {
-                var responseString = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                var responseString = await response.Content.ReadAsStringAsync();
                 var baseResponse = JsonConvert.DeserializeObject<BaseResponse>(responseString);
                 if (baseResponse.Meta.Rc == "ok")
                 {
@@ -522,15 +643,26 @@ namespace UnifiApi
             return response.IsSuccessStatusCode;
         }
 
-        private async Task<JsonResponse> ExecuteJsonCommandAsync(string path, JObject jsonData)
+        private async Task<JsonResponse> ExecuteJsonCommandAsync(string path, JObject jsonData, string requestType = "POST")
         {
             var returnResponse = new JsonResponse();
-            var response = await httpClient.PostAsync(path, new StringContent(jsonData.ToString(), Encoding.UTF8, _contentType));
+            HttpResponseMessage response;
+            switch (requestType.ToUpper())
+            {
+                case "PUT":
+                    response = await httpClient.PutAsync(path, new StringContent(jsonData.ToString(), Encoding.UTF8, _contentType));
+                    break;
+
+                default:
+                    response = await httpClient.PostAsync(path, new StringContent(jsonData.ToString(), Encoding.UTF8, _contentType));
+                    break;
+            }
+                
             returnResponse.StatusCode = response.StatusCode;
 
             if (response.IsSuccessStatusCode)
             {
-                returnResponse.Result = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                returnResponse.Result = await response.Content.ReadAsStringAsync();
             }
             else
             {
@@ -548,7 +680,7 @@ namespace UnifiApi
 
             if (response.IsSuccessStatusCode)
             {
-                returnResponse.Result = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                returnResponse.Result = await response.Content.ReadAsStringAsync();
             }
             else
             {
