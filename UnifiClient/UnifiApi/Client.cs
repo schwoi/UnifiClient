@@ -152,6 +152,22 @@ namespace UnifiApi
             
         }
 
+        /// <summary>
+        /// List access points and other devices under management of the controller (USW and/or USG devices)
+        /// </summary>
+        /// <param name="deviceMac">MAC address of a single device. (Optional)</param>
+        /// <returns>Task&lt;BaseResponse&lt;Site&gt;&gt;.</returns>
+        public async Task<BaseResponse<Device>> ListDevicesAsync(string deviceMac = null)
+        {
+            var path = $"api/s/{Site}/stat/device/{deviceMac}";
+
+            var response = await ExecuteGetCommandAsync(path);
+            return JsonConvert.DeserializeObject<BaseResponse<Device>>(response.Result);
+
+        }
+
+
+
         #region Commands
 
         private async Task<BoolResponse> ExecuteBoolCommandAsync(string path, JObject jsonData)

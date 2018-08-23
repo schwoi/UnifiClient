@@ -480,5 +480,19 @@ namespace UnifiApiTests
                 result.Data.Count.ShouldBeInRange(280, 292);
             }
         }
+        [Fact]
+        public async Task ShouldBeAbleToListAllDevices()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ListDevicesAsync();
+                result.Meta.Rc.ShouldBe("ok");
+                result.Data.ShouldNotBeNull();
+                result.Data.Count.ShouldBeGreaterThanOrEqualTo(1);
+            }
+        }
     }
 }
