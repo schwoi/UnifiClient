@@ -138,82 +138,17 @@ namespace UnifiApi
             return JsonConvert.DeserializeObject<BaseResponse<SystemInfo>>(response.Result);
         }
 
-                /// <summary>
-        /// List sites
-        /// </summary>
-        /// <returns>returns a list sites hosted on this controller with some details</returns>
-        public async Task<BaseResponse<Site>> ListSitesAsync()
+        public async Task<BaseResponse<CountryCode>> ListCountryCodesAsync()
         {
-            var path = $"api/self/sites";
+            var path = $"api/s/{Site}/stat/ccode";
+
+            var oJsonObject = new JObject();
 
             var response = await ExecuteGetCommandAsync(path);
-            return JsonConvert.DeserializeObject<BaseResponse<Site>>(response.Result);
-            
+
+            return JsonConvert.DeserializeObject<BaseResponse<CountryCode>>(response.Result);
         }
 
-        /// <summary>
-        /// Create a site
-        /// </summary>
-        /// <param name="siteName">the long name for the new site.</param>
-        /// <returns>returns an list containing a single site object.</returns>
-        public async Task<BaseResponse<Site>> CreateSiteAsync(string siteName)
-        {
-            var path = $"api/s/{Site}/cmd/sitemgr";
-            var oJsonObject = new JObject();
-            oJsonObject.Add("desc", siteName);
-            oJsonObject.Add("cmd", "add-site");
-            var response = await ExecuteJsonCommandAsync(path, oJsonObject);
-            return JsonConvert.DeserializeObject<BaseResponse<Site>>(response.Result);
-        }
-
-        /// <summary>
-        /// rename a site.
-        /// </summary>
-        /// <param name="newSiteName">New name of the site.</param>
-        /// <param name="siteName">Name of the site to be renamed. If left null the process will rename the site specified is client.Site.</param>
-        /// <returns>returns true on success.</returns>
-        public async Task<BoolResponse> RenameSiteAsync(string newSiteName, string siteName = null)
-        {
-            var path = $"api/s/{(siteName ?? Site)}/cmd/sitemgr";
-            var oJsonObject = new JObject();
-            oJsonObject.Add("desc", newSiteName);
-            oJsonObject.Add("cmd", "update-site");
-            return await ExecuteBoolCommandAsync(path, oJsonObject);
-            
-        }
-
-        /// <summary>
-        /// delete a site.
-        /// </summary>
-        /// <param name="siteId">The site identifier.</param>
-        /// <returns>return true on success</returns>
-        public async Task<BoolResponse> DeleteSiteAsync(string siteId)
-        {
-            var path = $"api/s/{Site}/cmd/sitemgr";
-            var oJsonObject = new JObject();
-            oJsonObject.Add("site", siteId);
-            oJsonObject.Add("cmd", "delete-site");
-            return await ExecuteBoolCommandAsync(path, oJsonObject);
-        }
-
-        /// <summary>
-        /// Lists the sites stats.
-        /// </summary>
-        /// <returns>returns statistics for all sites hosted on this controller</returns>
-        /// <exception cref="NotSupportedException">The controller version does not accept this request.</exception>
-
-        [MinimumVersionRequired("5.2.9")]
-        public async Task<BaseResponse<SiteStats>> ListSitesStatsAsync()
-        {
-            if (!Version.IsValid())
-                throw new NotSupportedException("The controller version does not accept this request.");
-
-            var path = $"api/stat/sites";
-
-            var response = await ExecuteGetCommandAsync(path);
-            return JsonConvert.DeserializeObject<BaseResponse<SiteStats>>(response.Result);
-
-        }
 
         /// <summary>
         /// List access points and other devices under management of the controller (USW and/or USG devices)

@@ -76,6 +76,21 @@ namespace UnifiApiTests
             }
         }
         [Fact]
+        public async Task ShouldGeCountryCodeList()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ListCountryCodesAsync();
+                result.ShouldNotBeNull();
+                result.Meta.Rc.ToLower().ShouldBe("ok");
+                result.Meta.Up.ShouldBe(true);
+                result.Meta.Uuid.ShouldNotBe(Guid.Empty);
+            }
+        }
+        [Fact]
         public async Task ShouldGetListOfSites()
         {
             using (var unifiClient = new Client(_url))
@@ -125,6 +140,71 @@ namespace UnifiApiTests
                 result.Result.ShouldBe(true);
 
                 await unifiClient.DeleteSiteAsync(createResult.Data.First().Id);
+            }
+        }
+
+        [Fact]
+        public async Task ShouldUpdateSiteCountry()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var createResult = await unifiClient.CreateSiteAsync("CountrySite");
+                createResult.ShouldNotBeNull();
+                createResult.Meta.Rc.ToLower().ShouldBe("ok");
+
+                var countries = await unifiClient.ListCountryCodesAsync();
+                var aust = countries.Data.FirstOrDefault(x => x.Name.Equals("Australia"));
+                var country = new CountrySetting
+                {
+                    Code = aust.Code,
+                    SiteId = createResult.Data.First().Id
+                };
+                
+                var result = await unifiClient.SetSiteCountryAsync(country, createResult.Data.First().Name);
+                result.Result.ShouldBe(true);
+
+                await unifiClient.DeleteSiteAsync(createResult.Data.First().Id);
+            }
+        }
+        [Fact]
+        public async Task ShouldUpdateSiteLocale()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var createResult = await unifiClient.CreateSiteAsync("LocaleSite");
+                createResult.ShouldNotBeNull();
+                createResult.Meta.Rc.ToLower().ShouldBe("ok");
+
+                var locale = new LocaleSetting()
+                {
+                    Timezone = "Australia/Canberra",
+                    SiteId = createResult.Data.First().Id
+                };
+                
+                var result = await unifiClient.SetSiteLocaleAsync(locale, createResult.Data.First().Name);
+                result.Result.ShouldBe(true);
+
+                await unifiClient.DeleteSiteAsync(createResult.Data.First().Id);
+            }
+        }
+        [Fact]
+        public async Task ShouldListSiteSettings()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ListSiteSettingsAsync();
+                //result.Data.ShouldBe();
+
+                //await unifiClient.DeleteSiteAsync(createResult.Data.First().Id);
             }
         }
 

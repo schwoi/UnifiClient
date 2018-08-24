@@ -8,11 +8,15 @@ Currently this library supports the following methods.
  - Login
  - Logout
  - GetControllerStatus
+ - ListCountryCodes
  - GetSystemInfo
  - ListSites
  - ListSitesStats
+ - ListSiteSettings
  - CreateSite
  - RenameSite
+ - SetSiteCountry
+ - SetSiteLocale
  - DeleteSite
  - AuthorizeGuest
  - UnauthorizeGuest
