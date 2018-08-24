@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -47,6 +49,37 @@ namespace UnifiApi.Helpers
 
             // Return the first if there was a match.
             return attribs.Length > 0 ? attribs[0].StringValue : null;
+        }
+
+        /// <summary>
+        /// Checks if the version supplied is valid againts the Methods Minimum Required Version Attribute.
+        /// Returns true if ... is valid.
+        /// </summary>
+        /// <param name="version">The version.</param>
+        /// <returns><c>true</c> if the specified version is valid; otherwise, <c>false</c>.</returns>
+        public static bool IsValid(this Version version)
+        {
+            StackTrace stackTrace = new StackTrace();
+            var requiredVersionMethod = stackTrace.GetFrame(3).GetMethod().GetCustomAttributes(typeof(MinimumVersionRequiredAttribute), false) as MinimumVersionRequiredAttribute[];
+
+            if (requiredVersionMethod == null || !requiredVersionMethod.Any())
+                return true;
+
+            var versionRequired = requiredVersionMethod.First();
+
+            if (versionRequired.MajorValue > version.Major)
+                return false;
+
+            if (versionRequired.MajorValue == version.Major && 
+                versionRequired.MinorValue > version.Minor)
+                return false;
+
+            if (versionRequired.MajorValue == version.Major && 
+                versionRequired.MinorValue == version.Minor && 
+                versionRequired.BuildValue > version.Build)
+                return false;
+
+            return true;
         }
     }
 }
