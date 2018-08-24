@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Shouldly;
 using UnifiApi;
+using UnifiApi.Helpers;
 using UnifiApi.Models;
 using UnifiApiTests.Models;
 using Xunit;
@@ -30,7 +31,7 @@ namespace UnifiApiTests
         [Fact]
         public async Task CanAuthenticate()
         {
-            using (var unifiClient = new Client(_url))
+            using (var unifiClient = new Client(_url, null, true))
             {
                 var result = await unifiClient.LoginAsync(_user, _pass);
                 result.Result.ShouldBeTrue();
@@ -86,6 +87,128 @@ namespace UnifiApiTests
                 result.ShouldNotBeNull();
                 result.Meta.Rc.ToLower().ShouldBe("ok");
                 result.Data.Count.ShouldBeGreaterThan(0);
+            }
+        }
+
+        [Fact]
+        public async Task ShouldCreateSite()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.CreateSiteAsync("TestSite");
+                result.ShouldNotBeNull();
+                result.Meta.Rc.ToLower().ShouldBe("ok");
+                result.Data.Count.ShouldBeGreaterThan(0);
+                result.Data.First().Description.ShouldBe("TestSite");
+
+                await unifiClient.DeleteSiteAsync(result.Data.First().Id);
+            }
+        }
+
+        [Fact]
+        public async Task ShouldUpdateSite()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var createResult = await unifiClient.CreateSiteAsync("UpdateSite");
+                createResult.ShouldNotBeNull();
+                createResult.Meta.Rc.ToLower().ShouldBe("ok");
+                createResult.Data.Count.ShouldBeGreaterThan(0);
+
+                var result = await unifiClient.RenameSiteAsync("UpdatedSite", createResult.Data.First().Name);
+                result.Result.ShouldBe(true);
+
+                await unifiClient.DeleteSiteAsync(createResult.Data.First().Id);
+            }
+        }
+
+
+        [Fact]
+        public async Task ShouldDeleteSite()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var createResult = await unifiClient.CreateSiteAsync("DeleteSite");
+                createResult.ShouldNotBeNull();
+                createResult.Meta.Rc.ToLower().ShouldBe("ok");
+
+                var result = await unifiClient.DeleteSiteAsync(createResult.Data.First().Id);
+                result.Result.ShouldBe(true);
+            }
+        }
+
+        [Fact]
+        public void ShouldValidateVersionMissingAttribute()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                unifiClient.Version = Version.Parse("1.1.1");
+                unifiClient.Version.IsValid().ShouldBe(true);
+            }
+        }
+        [Fact]
+        [MinimumVersionRequired("1.1.0")]
+        public void ShouldValidateVersion()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                unifiClient.Version = Version.Parse("1.1.1");
+                unifiClient.Version.IsValid().ShouldBe(true);
+            }
+        }
+        [Fact]
+        [MinimumVersionRequired("1.1.2")]
+        public void ShouldFailOnBuildVersion()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                unifiClient.Version = Version.Parse("1.1.1");
+                unifiClient.Version.IsValid().ShouldBe(false);
+            }
+        }
+        [Fact]
+        [MinimumVersionRequired("1.2.2")]
+        public void ShouldFailOnMinorVersion()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                unifiClient.Version = Version.Parse("1.1.3");
+                unifiClient.Version.IsValid().ShouldBe(false);
+            }
+        }
+        [Fact]
+        [MinimumVersionRequired("2.2.3")]
+        public void ShouldFailOnMajorVersion()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                unifiClient.Version = Version.Parse("1.2.3");
+                unifiClient.Version.IsValid().ShouldBe(false);
+            }
+        }
+        [Fact]
+        public async Task ShouldGetListOfSitesStats()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ListSitesStatsAsync();
+                result.ShouldNotBeNull();
+                result.Meta.Rc.ToLower().ShouldBe("ok");
+                result.Data.Count.ShouldBeGreaterThan(0);
+                result.Data.First().Health.Count.ShouldBeGreaterThanOrEqualTo(1);
+
             }
         }
         [Fact]
@@ -489,6 +612,51 @@ namespace UnifiApiTests
                 loginResult.Result.ShouldBeTrue();
 
                 var result = await unifiClient.ListDevicesAsync();
+                result.Meta.Rc.ShouldBe("ok");
+                result.Data.ShouldNotBeNull();
+                result.Data.Count.ShouldBeGreaterThanOrEqualTo(1);
+            }
+        }
+
+        [Fact]
+        public async Task ShouldBeAbleToListDeviceTags()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ListDeviceTagsAsync();
+                result.Meta.Rc.ShouldBe("ok");
+                result.Data.ShouldNotBeNull();
+                result.Data.Count.ShouldBeGreaterThanOrEqualTo(1);
+            }
+        }
+
+        [Fact]
+        public async Task ShouldBeAbleToListRougeAp()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ListRougeApAsync();
+                result.Meta.Rc.ShouldBe("ok");
+                result.Data.ShouldNotBeNull();
+                result.Data.Count.ShouldBeGreaterThanOrEqualTo(1);
+            }
+        }
+
+        [Fact]
+        public async Task ShouldBeAbleToListKnownRougeAp()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ListKnownRougeApAsync();
                 result.Meta.Rc.ShouldBe("ok");
                 result.Data.ShouldNotBeNull();
                 result.Data.Count.ShouldBeGreaterThanOrEqualTo(1);

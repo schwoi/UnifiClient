@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -19,7 +20,7 @@ namespace UnifiApi
         private HttpClient httpClient;
         public string BaseUrl { get; set; }
         public string Site { get; set; }
-        public string Version { get; set; }
+        public Version Version { get; set; }
         public bool IsUp { get; set; }
         public bool IsLoggedIn { get; set; }
         public bool IgnoreSslCertificate { get; set; }
@@ -28,7 +29,7 @@ namespace UnifiApi
         {
             BaseUrl = "https://127.0.0.1:8443";
             Site = "default";
-            Version = "0.0.0";
+            this.Version = Version.Parse("0.0.0");
             IsLoggedIn = false;
             IgnoreSslCertificate = true;
             CreateClient();
@@ -38,7 +39,7 @@ namespace UnifiApi
         {
             BaseUrl = baseUrl;
             Site = string.IsNullOrEmpty(site) ? "default" : site;
-            Version = "0.0.0";
+            this.Version = Version.Parse("0.0.0");
             IsLoggedIn = false;
             IgnoreSslCertificate = ignoreSslCertificate;
             CreateClient();
@@ -88,7 +89,7 @@ namespace UnifiApi
             if (IsLoggedIn)
             {
                 var getControllerStatus = await GetControllerStatusAsync();
-                Version = getControllerStatus.Meta.ServerVersion;
+                Version = Version.Parse(getControllerStatus.Meta.ServerVersion);
                 if (getControllerStatus.Meta.Up != null) IsUp = getControllerStatus.Meta.Up.Value;
             }
 
@@ -145,11 +146,73 @@ namespace UnifiApi
         {
             var path = $"api/self/sites";
 
-            var oJsonObject = new JObject();
-            
             var response = await ExecuteGetCommandAsync(path);
             return JsonConvert.DeserializeObject<BaseResponse<Site>>(response.Result);
             
+        }
+
+        /// <summary>
+        /// Create a site
+        /// </summary>
+        /// <param name="siteName">the long name for the new site.</param>
+        /// <returns>returns an list containing a single site object.</returns>
+        public async Task<BaseResponse<Site>> CreateSiteAsync(string siteName)
+        {
+            var path = $"api/s/{Site}/cmd/sitemgr";
+            var oJsonObject = new JObject();
+            oJsonObject.Add("desc", siteName);
+            oJsonObject.Add("cmd", "add-site");
+            var response = await ExecuteJsonCommandAsync(path, oJsonObject);
+            return JsonConvert.DeserializeObject<BaseResponse<Site>>(response.Result);
+        }
+
+        /// <summary>
+        /// rename a site.
+        /// </summary>
+        /// <param name="newSiteName">New name of the site.</param>
+        /// <param name="siteName">Name of the site to be renamed. If left null the process will rename the site specified is client.Site.</param>
+        /// <returns>returns true on success.</returns>
+        public async Task<BoolResponse> RenameSiteAsync(string newSiteName, string siteName = null)
+        {
+            var path = $"api/s/{(siteName ?? Site)}/cmd/sitemgr";
+            var oJsonObject = new JObject();
+            oJsonObject.Add("desc", newSiteName);
+            oJsonObject.Add("cmd", "update-site");
+            return await ExecuteBoolCommandAsync(path, oJsonObject);
+            
+        }
+
+        /// <summary>
+        /// delete a site.
+        /// </summary>
+        /// <param name="siteId">The site identifier.</param>
+        /// <returns>return true on success</returns>
+        public async Task<BoolResponse> DeleteSiteAsync(string siteId)
+        {
+            var path = $"api/s/{Site}/cmd/sitemgr";
+            var oJsonObject = new JObject();
+            oJsonObject.Add("site", siteId);
+            oJsonObject.Add("cmd", "delete-site");
+            return await ExecuteBoolCommandAsync(path, oJsonObject);
+        }
+
+        /// <summary>
+        /// Lists the sites stats.
+        /// </summary>
+        /// <returns>returns statistics for all sites hosted on this controller</returns>
+        /// <exception cref="NotSupportedException">The controller version does not accept this request.</exception>
+
+        [MinimumVersionRequired("5.2.9")]
+        public async Task<BaseResponse<SiteStats>> ListSitesStatsAsync()
+        {
+            if (!Version.IsValid())
+                throw new NotSupportedException("The controller version does not accept this request.");
+
+            var path = $"api/stat/sites";
+
+            var response = await ExecuteGetCommandAsync(path);
+            return JsonConvert.DeserializeObject<BaseResponse<SiteStats>>(response.Result);
+
         }
 
         /// <summary>
@@ -157,6 +220,7 @@ namespace UnifiApi
         /// </summary>
         /// <param name="deviceMac">MAC address of a single device. (Optional)</param>
         /// <returns>Task&lt;BaseResponse&lt;Site&gt;&gt;.</returns>
+
         public async Task<BaseResponse<Device>> ListDevicesAsync(string deviceMac = null)
         {
             var path = $"api/s/{Site}/stat/device/{deviceMac}";
@@ -166,7 +230,56 @@ namespace UnifiApi
 
         }
 
+        /// <summary>
+        /// list device tags.
+        /// </summary>
+        /// <returns>returns a list of known device tags and members.</returns>
+        /// <exception cref="NotSupportedException">The controller version does not accept this request.</exception>
+        [MinimumVersionRequired(5,5)]
+        public async Task<BaseResponse<DeviceTags>> ListDeviceTagsAsync()
+        {
+            if (!Version.IsValid())
+                throw new NotSupportedException("The controller version does not accept this request.");
 
+            var path = $"api/s/{Site}/rest/tag";
+
+            var response = await ExecuteGetCommandAsync(path);
+            return JsonConvert.DeserializeObject<BaseResponse<DeviceTags>>(response.Result);
+
+        }
+
+        /// <summary>
+        /// List rogue/neighboring access points
+        /// </summary>
+        /// <param name="within">The within x hours to go back to list discovered "rogue" access points (default = 24 hours)</param>
+        /// <returns>List of rogue/neighboring access points</returns>
+        public async Task<BaseResponse<RougeAp>> ListRougeApAsync(int within = 24)
+        {
+
+            var path = $"api/s/{Site}/stat/rogueap";
+
+            var oJsonObject = new JObject();
+            oJsonObject.Add("within", within);
+
+            var response = await ExecuteJsonCommandAsync(path, oJsonObject);
+
+            return JsonConvert.DeserializeObject<BaseResponse<RougeAp>>(response.Result);
+
+        }
+
+        /// <summary>
+        /// list known rogue/neighboring access points
+        /// </summary>
+        /// <returns>List of rogue/neighboring access points</returns>
+        public async Task<BaseResponse<RougeAp>> ListKnownRougeApAsync()
+        {
+            var path = $"api/s/{Site}/rest/rogueknown";
+
+            var response = await ExecuteGetCommandAsync(path);
+            //TODO: Need to check Model is the same
+            return JsonConvert.DeserializeObject<BaseResponse<RougeAp>>(response.Result);
+
+        }
 
         #region Commands
 

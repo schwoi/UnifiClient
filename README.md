@@ -10,6 +10,10 @@ Currently this library supports the following methods.
  - GetControllerStatus
  - GetSystemInfo
  - ListSites
+ - ListSitesStats
+ - CreateSite
+ - RenameSite
+ - DeleteSite
  - AuthorizeGuest
  - UnauthorizeGuest
  - ExtendGuest
@@ -33,6 +37,11 @@ Currently this library supports the following methods.
  - UpdateFirewallGroup
  - DeleteFirewallGroup
  - ListFirewallGroups
+ - ListDevices
+ - ListDeviceTags
+ - ListRougeAp
+ - ListKnownRougeAp
+ 
 
 ## Requirements
 
