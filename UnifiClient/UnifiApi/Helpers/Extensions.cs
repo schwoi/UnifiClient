@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace UnifiApi.Helpers
@@ -56,11 +57,19 @@ namespace UnifiApi.Helpers
         /// Returns true if ... is valid.
         /// </summary>
         /// <param name="version">The version.</param>
+        /// <param name="methodName">Name of the calling method.</param>
         /// <returns><c>true</c> if the specified version is valid; otherwise, <c>false</c>.</returns>
-        public static bool IsValid(this Version version)
+        public static bool IsValid(this Version version, [CallerMemberName] string methodName = null)
         {
             StackTrace stackTrace = new StackTrace();
-            var requiredVersionMethod = stackTrace.GetFrame(3).GetMethod().GetCustomAttributes(typeof(MinimumVersionRequiredAttribute), false) as MinimumVersionRequiredAttribute[];
+            if (stackTrace.GetFrames() == null || methodName == null)
+                return true;
+
+            var stackTraceFrames = stackTrace.GetFrames();
+
+            var versionObjecet = stackTraceFrames?.FirstOrDefault(x => x.GetMethod().Name.Contains(methodName));
+
+            var requiredVersionMethod = versionObjecet?.GetMethod().GetCustomAttributes(typeof(MinimumVersionRequiredAttribute), false) as MinimumVersionRequiredAttribute[];
 
             if (requiredVersionMethod == null || !requiredVersionMethod.Any())
                 return true;
@@ -70,12 +79,12 @@ namespace UnifiApi.Helpers
             if (versionRequired.MajorValue > version.Major)
                 return false;
 
-            if (versionRequired.MajorValue == version.Major && 
+            if (versionRequired.MajorValue == version.Major &&
                 versionRequired.MinorValue > version.Minor)
                 return false;
 
-            if (versionRequired.MajorValue == version.Major && 
-                versionRequired.MinorValue == version.Minor && 
+            if (versionRequired.MajorValue == version.Major &&
+                versionRequired.MinorValue == version.Minor &&
                 versionRequired.BuildValue > version.Build)
                 return false;
 
