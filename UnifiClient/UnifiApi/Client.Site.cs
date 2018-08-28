@@ -120,5 +120,17 @@ namespace UnifiApi
             var response = await ExecuteGetCommandAsync(path);
             return JsonConvert.DeserializeObject<BaseResponse<SiteStats>>(response.Result);
         }
+        /// <summary>
+        /// Toggle LEDs of all the access points ON or OFF
+        /// </summary>
+        /// <param name="enable">if set to <c>true</c> [enable]. true will switch LEDs of all the access points ON, false will switch them OFF</param>
+        /// <returns>returns <c>true</c> on success</returns>
+        public async Task<BoolResponse> ToggleSiteLedsAsync(bool enable)
+        {
+            var path = $"api/s/{Site}/set/setting/mgmt";
+            var oJsonObject = new JObject();
+            oJsonObject.Add("led_enabled", enable);
+            return await ExecuteBoolCommandAsync(path, oJsonObject);
+        }
     }
 }

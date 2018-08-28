@@ -150,80 +150,23 @@ namespace UnifiApi
         }
 
 
-        /// <summary>
-        /// List access points and other devices under management of the controller (USW and/or USG devices)
-        /// </summary>
-        /// <param name="deviceMac">MAC address of a single device. (Optional)</param>
-        /// <returns>Task&lt;BaseResponse&lt;Site&gt;&gt;.</returns>
-
-        public async Task<BaseResponse<Device>> ListDevicesAsync(string deviceMac = null)
-        {
-            var path = $"api/s/{Site}/stat/device/{deviceMac}";
-
-            var response = await ExecuteGetCommandAsync(path);
-            return JsonConvert.DeserializeObject<BaseResponse<Device>>(response.Result);
-
-        }
-
-        /// <summary>
-        /// list device tags.
-        /// </summary>
-        /// <returns>returns a list of known device tags and members.</returns>
-        /// <exception cref="NotSupportedException">The controller version does not accept this request.</exception>
-        [MinimumVersionRequired(5,5)]
-        public async Task<BaseResponse<DeviceTags>> ListDeviceTagsAsync()
-        {
-            if (!Version.IsValid())
-                throw new NotSupportedException("The controller version does not accept this request.");
-
-            var path = $"api/s/{Site}/rest/tag";
-
-            var response = await ExecuteGetCommandAsync(path);
-            return JsonConvert.DeserializeObject<BaseResponse<DeviceTags>>(response.Result);
-
-        }
-
-        /// <summary>
-        /// List rogue/neighboring access points
-        /// </summary>
-        /// <param name="within">The within x hours to go back to list discovered "rogue" access points (default = 24 hours)</param>
-        /// <returns>List of rogue/neighboring access points</returns>
-        public async Task<BaseResponse<RougeAp>> ListRougeApAsync(int within = 24)
-        {
-
-            var path = $"api/s/{Site}/stat/rogueap";
-
-            var oJsonObject = new JObject();
-            oJsonObject.Add("within", within);
-
-            var response = await ExecuteJsonCommandAsync(path, oJsonObject);
-
-            return JsonConvert.DeserializeObject<BaseResponse<RougeAp>>(response.Result);
-
-        }
-
-        /// <summary>
-        /// list known rogue/neighboring access points
-        /// </summary>
-        /// <returns>List of rogue/neighboring access points</returns>
-        public async Task<BaseResponse<RougeAp>> ListKnownRougeApAsync()
-        {
-            var path = $"api/s/{Site}/rest/rogueknown";
-
-            var response = await ExecuteGetCommandAsync(path);
-            //TODO: Need to check Model is the same
-            return JsonConvert.DeserializeObject<BaseResponse<RougeAp>>(response.Result);
-
-        }
-
         #region Commands
 
-        private async Task<BoolResponse> ExecuteBoolCommandAsync(string path, JObject jsonData)
+        private async Task<BoolResponse> ExecuteBoolCommandAsync(string path, JObject jsonData, string requestType = "POST")
         {
             var returnResponse = new BoolResponse();
 
-            var response = await httpClient.PostAsync(path, new StringContent(jsonData.ToString(), Encoding.UTF8, _contentType));
+            HttpResponseMessage response;
+            switch (requestType.ToUpper())
+            {
+                case "PUT":
+                    response = await httpClient.PutAsync(path, new StringContent(jsonData.ToString(), Encoding.UTF8, _contentType));
+                    break;
 
+                default:
+                    response = await httpClient.PostAsync(path, new StringContent(jsonData.ToString(), Encoding.UTF8, _contentType));
+                    break;
+            }
             returnResponse.StatusCode = response.StatusCode;
 
             if (response.IsSuccessStatusCode)

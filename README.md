@@ -45,7 +45,17 @@ Currently this library supports the following methods.
  - ListDeviceTags
  - ListRougeAp
  - ListKnownRougeAp
- 
+ - AdoptDevice
+ - RestartDevice
+ - RenameDevice
+ - DisableAp
+ - OverrideLed
+ - LocateDevice
+ - SiteLeds
+
+## Install
+Nuget: https://www.nuget.org/packages/UnifiApi/
+Install-Package UnifiApi 
 
 ## Requirements
 

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.NetworkInformation;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace UnifiApi.Models
 {
@@ -1759,4 +1761,10 @@ namespace UnifiApi.Models
         public bool Up { get; set; }
     }
 
+    public partial struct MacAddress
+    {
+        public string String;
+
+        public static implicit operator MacAddress(string String) => new MacAddress { String = String };
+    }
 }

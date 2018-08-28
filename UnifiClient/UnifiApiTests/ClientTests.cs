@@ -276,6 +276,36 @@ namespace UnifiApiTests
             }
         }
         [Fact]
+        [MinimumVersionRequired("2.2")]
+        public void ShouldValidate2PointVersion()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                unifiClient.Version = Version.Parse("2.2.3");
+                unifiClient.Version.IsValid().ShouldBe(true);
+            }
+        }
+        [Fact]
+        [MinimumVersionRequired("2.2")]
+        public void ShouldValidateSame2PointVersion()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                unifiClient.Version = Version.Parse("2.2.0");
+                unifiClient.Version.IsValid().ShouldBe(true);
+            }
+        }
+        [Fact]
+        [MinimumVersionRequired("2.2")]
+        public void ShouldFail2PointVersion()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                unifiClient.Version = Version.Parse("2.1.7");
+                unifiClient.Version.IsValid().ShouldBe(false);
+            }
+        }
+        [Fact]
         public async Task ShouldGetListOfSitesStats()
         {
             using (var unifiClient = new Client(_url))
@@ -307,7 +337,7 @@ namespace UnifiApiTests
             }
         }
 
-        [Fact(Skip = "Fail's on Default Demo Site")]
+        [Fact(Skip = "Needs MAC Address Set")]
         public async Task ShouldGetClientDetails()
         {
             using (var unifiClient = new Client(_url))
@@ -728,7 +758,7 @@ namespace UnifiApiTests
             }
         }
 
-        [Fact]
+        [Fact (Skip = "Can't guarantee there are rouge ap's")]
         public async Task ShouldBeAbleToListKnownRougeAp()
         {
             using (var unifiClient = new Client(_url, null, true))
@@ -740,6 +770,112 @@ namespace UnifiApiTests
                 result.Meta.Rc.ShouldBe("ok");
                 result.Data.ShouldNotBeNull();
                 result.Data.Count.ShouldBeGreaterThanOrEqualTo(1);
+            }
+        }
+
+        [Fact(Skip = "Needs MAC Address Set")]
+        public async Task ShouldBeAbleToAdoptDevice()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.AdoptDeviceAsync("{ set mac address}");
+                result.Result.ShouldBe(true);
+            }
+        }
+
+        [Fact]
+        public async Task ShouldBeAbleToRestartDevice()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var deviceList = await unifiClient.ListDevicesAsync();
+
+                var result = await unifiClient.RestartDeviceAsync(deviceList.Data.First().Mac);
+                result.Result.ShouldBe(true);
+            }
+        }
+
+        [Fact]
+        public async Task ShouldBeAbleToDisableAp()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var deviceList = await unifiClient.ListDevicesAsync();
+
+                var result = await unifiClient.DisableApAsync(deviceList.Data.First().DeviceId);
+                result.Result.ShouldBe(true);
+
+                await unifiClient.DisableApAsync(deviceList.Data.First().DeviceId, false);
+            }
+        }
+        [Fact]
+        public async Task ShouldBeAbleToOverrideLed()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var deviceList = await unifiClient.ListDevicesAsync();
+
+                var result = await unifiClient.OverrideLedAsync(deviceList.Data.First().DeviceId, Enumerations.OverrideMode.On);
+                result.Result.ShouldBe(true);
+
+                await unifiClient.OverrideLedAsync(deviceList.Data.First().Mac, Enumerations.OverrideMode.Default);
+            }
+        }
+
+        [Fact]
+        public async Task ShouldBeAbleToToggleDevice()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var deviceList = await unifiClient.ListDevicesAsync();
+
+                var result = await unifiClient.LocateDeviceAsync(deviceList.Data.First().Mac, true);
+                result.Result.ShouldBe(true);
+
+                await unifiClient.LocateDeviceAsync(deviceList.Data.First().Mac, false);
+            }
+        }
+
+        [Fact]
+        public async Task ShouldBeAbleToToggleSiteLed()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ToggleSiteLedsAsync(true);
+                result.Result.ShouldBe(true);
+            }
+        }
+        [Fact]
+        public async Task ShouldBeAbleToRenameDevice()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+                var deviceList = await unifiClient.ListDevicesAsync();
+
+                var result = await unifiClient.RenameDeviceAsync(deviceList.Data.First().DeviceId, "Test");
+                result.Result.ShouldBe(true);
+
+                await unifiClient.RenameDeviceAsync(deviceList.Data.First().DeviceId, deviceList.Data.First().Name);
             }
         }
     }
