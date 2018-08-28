@@ -10,23 +10,25 @@ namespace UnifiApi.Helpers
 {
    public static class Extensions
     {
-        public static DateTime ToLocalDateTime(this double seconds)
+        private static readonly DateTime BaseDateTime = new DateTime(1970, 1, 1);
+
+        public static DateTime ToLocalDateTime(this long seconds)
         {
-            return new DateTime(1970, 1, 1).AddMilliseconds(seconds).ToLocalTime();
+            return BaseDateTime.AddMilliseconds(seconds).ToLocalTime();
         }
-        public static DateTime ToUtcDateTime(this double seconds)
+        public static DateTime ToUtcDateTime(this long seconds)
         {
-            return new DateTime(1970, 1, 1).AddMilliseconds(seconds);
+            return BaseDateTime.AddMilliseconds(seconds);
         }
 
         public static DateTime ToLocalDateTime(this int seconds)
         {
-            return new DateTime(1970, 1, 1).AddSeconds(seconds).ToLocalTime();
+            return BaseDateTime.AddSeconds(seconds).ToLocalTime();
         }
 
         public static DateTime ToUtcDateTime(this int seconds)
         {
-            return new DateTime(1970, 1, 1).AddSeconds(seconds);
+            return BaseDateTime.AddSeconds(seconds);
         }
 
         /// <summary>
