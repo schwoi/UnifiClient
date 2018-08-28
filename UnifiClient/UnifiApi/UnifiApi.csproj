@@ -1,7 +1,14 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <authors>Brent Howard</authors>
+    <Title>.NET Standard Unifi API</Title>
+    <Description>This is .NET Standard wrapper library for the Ubiquiti Unifi Controller. It allows you to manage guests and clients aswell as groups.</Description>
+    <language>en-US</language>
+    <PackageLicenseUrl>https://github.com/schwoi/UnifiClient/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/schwoi/UnifiClient</PackageProjectUrl>
+    <PackageTags>Ubiquiti Unifi Wifi</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

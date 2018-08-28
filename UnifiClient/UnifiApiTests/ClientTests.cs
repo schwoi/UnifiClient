@@ -4,9 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.XPath;
 using Newtonsoft.Json;
 using Shouldly;
 using UnifiApi;
+using UnifiApi.Helpers;
 using UnifiApi.Models;
 using UnifiApiTests.Models;
 using Xunit;
@@ -30,7 +32,7 @@ namespace UnifiApiTests
         [Fact]
         public async Task CanAuthenticate()
         {
-            using (var unifiClient = new Client(_url))
+            using (var unifiClient = new Client(_url, null, true))
             {
                 var result = await unifiClient.LoginAsync(_user, _pass);
                 result.Result.ShouldBeTrue();
@@ -75,6 +77,20 @@ namespace UnifiApiTests
             }
         }
         [Fact]
+        public async Task ShouldGeCountryCodeList()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ListCountryCodesAsync();
+                result.ShouldNotBeNull();
+                result.Meta.Rc.ToLower().ShouldBe("ok");
+                result.Data.Count().ShouldBeGreaterThan(0);
+            }
+        }
+        [Fact]
         public async Task ShouldGetListOfSites()
         {
             using (var unifiClient = new Client(_url))
@@ -86,6 +102,223 @@ namespace UnifiApiTests
                 result.ShouldNotBeNull();
                 result.Meta.Rc.ToLower().ShouldBe("ok");
                 result.Data.Count.ShouldBeGreaterThan(0);
+            }
+        }
+
+        [Fact(Skip = "Fail's on Default Demo Site")]
+        public async Task ShouldCreateSite()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.CreateSiteAsync("TestSite");
+                result.ShouldNotBeNull();
+                result.Meta.Rc.ToLower().ShouldBe("ok");
+                result.Data.Count.ShouldBeGreaterThan(0);
+                result.Data.First().Description.ShouldBe("TestSite");
+
+                await unifiClient.DeleteSiteAsync(result.Data.First().Id);
+            }
+        }
+
+        [Fact(Skip = "Fail's on Default Demo Site")]
+        public async Task ShouldUpdateSite()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var createResult = await unifiClient.CreateSiteAsync("UpdateSite");
+                createResult.ShouldNotBeNull();
+                createResult.Meta.Rc.ToLower().ShouldBe("ok");
+                createResult.Data.Count.ShouldBeGreaterThan(0);
+
+                var result = await unifiClient.RenameSiteAsync("UpdatedSite", createResult.Data.First().Name);
+                result.Result.ShouldBe(true);
+
+                await unifiClient.DeleteSiteAsync(createResult.Data.First().Id);
+            }
+        }
+
+        [Fact(Skip = "Fail's on Default Demo Site")]
+        public async Task ShouldUpdateSiteCountry()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var createResult = await unifiClient.CreateSiteAsync("CountrySite");
+                createResult.ShouldNotBeNull();
+                createResult.Meta.Rc.ToLower().ShouldBe("ok");
+
+                var countries = await unifiClient.ListCountryCodesAsync();
+                var aust = countries.Data.FirstOrDefault(x => x.Name.Equals("Australia"));
+                var country = new CountrySetting
+                {
+                    Code = aust.Code,
+                    SiteId = createResult.Data.First().Id
+                };
+                
+                var result = await unifiClient.SetSiteCountryAsync(country, createResult.Data.First().Name);
+                result.Result.ShouldBe(true);
+
+                await unifiClient.DeleteSiteAsync(createResult.Data.First().Id);
+            }
+        }
+        [Fact(Skip = "Fail's on Default Demo Site")]
+        public async Task ShouldUpdateSiteLocale()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var createResult = await unifiClient.CreateSiteAsync("LocaleSite");
+                createResult.ShouldNotBeNull();
+                createResult.Meta.Rc.ToLower().ShouldBe("ok");
+
+                var locale = new LocaleSetting()
+                {
+                    Timezone = "Australia/Canberra",
+                    SiteId = createResult.Data.First().Id
+                };
+                
+                var result = await unifiClient.SetSiteLocaleAsync(locale, createResult.Data.First().Name);
+                result.Result.ShouldBe(true);
+
+                await unifiClient.DeleteSiteAsync(createResult.Data.First().Id);
+            }
+        }
+        [Fact]
+        public async Task ShouldListSiteSettings()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ListSiteSettingsAsync();
+                //result.Data.ShouldBe();
+
+                //await unifiClient.DeleteSiteAsync(createResult.Data.First().Id);
+            }
+        }
+
+
+        [Fact(Skip = "Fail's on Default Demo Site")]
+        public async Task ShouldDeleteSite()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var createResult = await unifiClient.CreateSiteAsync("DeleteSite");
+                createResult.ShouldNotBeNull();
+                createResult.Meta.Rc.ToLower().ShouldBe("ok");
+
+                var result = await unifiClient.DeleteSiteAsync(createResult.Data.First().Id);
+                result.Result.ShouldBe(true);
+            }
+        }
+
+        [Fact]
+        public void ShouldValidateVersionMissingAttribute()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                unifiClient.Version = Version.Parse("1.1.1");
+                unifiClient.Version.IsValid().ShouldBe(true);
+            }
+        }
+        [Fact]
+        [MinimumVersionRequired("1.1.0")]
+        public void ShouldValidateVersion()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                unifiClient.Version = Version.Parse("1.1.1");
+                unifiClient.Version.IsValid().ShouldBe(true);
+            }
+        }
+        [Fact]
+        [MinimumVersionRequired("1.1.2")]
+        public void ShouldFailOnBuildVersion()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                unifiClient.Version = Version.Parse("1.1.1");
+                unifiClient.Version.IsValid().ShouldBe(false);
+            }
+        }
+        [Fact]
+        [MinimumVersionRequired("1.2.2")]
+        public void ShouldFailOnMinorVersion()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                unifiClient.Version = Version.Parse("1.1.3");
+                unifiClient.Version.IsValid().ShouldBe(false);
+            }
+        }
+        [Fact]
+        [MinimumVersionRequired("2.2.3")]
+        public void ShouldFailOnMajorVersion()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                unifiClient.Version = Version.Parse("1.2.3");
+                unifiClient.Version.IsValid().ShouldBe(false);
+            }
+        }
+        [Fact]
+        [MinimumVersionRequired("2.2")]
+        public void ShouldValidate2PointVersion()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                unifiClient.Version = Version.Parse("2.2.3");
+                unifiClient.Version.IsValid().ShouldBe(true);
+            }
+        }
+        [Fact]
+        [MinimumVersionRequired("2.2")]
+        public void ShouldValidateSame2PointVersion()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                unifiClient.Version = Version.Parse("2.2.0");
+                unifiClient.Version.IsValid().ShouldBe(true);
+            }
+        }
+        [Fact]
+        [MinimumVersionRequired("2.2")]
+        public void ShouldFail2PointVersion()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                unifiClient.Version = Version.Parse("2.1.7");
+                unifiClient.Version.IsValid().ShouldBe(false);
+            }
+        }
+        [Fact]
+        public async Task ShouldGetListOfSitesStats()
+        {
+            using (var unifiClient = new Client(_url))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ListSitesStatsAsync();
+                result.ShouldNotBeNull();
+                result.Meta.Rc.ToLower().ShouldBe("ok");
+                result.Data.Count.ShouldBeGreaterThan(0);
+                result.Data.First().Health.Count.ShouldBeGreaterThanOrEqualTo(1);
+
             }
         }
         [Fact]
@@ -104,7 +337,7 @@ namespace UnifiApiTests
             }
         }
 
-        [Fact(Skip = "Fail's on Default Demo Site")]
+        [Fact(Skip = "Needs MAC Address Set")]
         public async Task ShouldGetClientDetails()
         {
             using (var unifiClient = new Client(_url))
@@ -478,6 +711,171 @@ namespace UnifiApiTests
                 result.Meta.Rc.ShouldBe("ok");
                 result.Data.ShouldNotBeNull();
                 result.Data.Count.ShouldBeInRange(280, 292);
+            }
+        }
+        [Fact(Skip = "Fail's on demo site due to a bad MAC result in the Device Lists")]
+        public async Task ShouldBeAbleToListAllDevices()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ListDevicesAsync();
+                result.Meta.Rc.ShouldBe("ok");
+                result.Data.ShouldNotBeNull();
+                result.Data.Count.ShouldBeGreaterThanOrEqualTo(1);
+            }
+        }
+
+        [Fact(Skip = "Fail's on demo site due to a bad MAC result in the Device Lists")]
+        public async Task ShouldBeAbleToListDeviceTags()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ListDeviceTagsAsync();
+                result.Meta.Rc.ShouldBe("ok");
+                result.Data.ShouldNotBeNull();
+                result.Data.Count.ShouldBeGreaterThanOrEqualTo(1);
+            }
+        }
+
+        [Fact]
+        public async Task ShouldBeAbleToListRougeAp()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ListRougeApAsync();
+                result.Meta.Rc.ShouldBe("ok");
+                result.Data.ShouldNotBeNull();
+                result.Data.Count.ShouldBeGreaterThanOrEqualTo(1);
+            }
+        }
+
+        [Fact (Skip = "Can't guarantee there are rouge ap's")]
+        public async Task ShouldBeAbleToListKnownRougeAp()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ListKnownRougeApAsync();
+                result.Meta.Rc.ShouldBe("ok");
+                result.Data.ShouldNotBeNull();
+                result.Data.Count.ShouldBeGreaterThanOrEqualTo(1);
+            }
+        }
+
+        [Fact(Skip = "Needs MAC Address Set")]
+        public async Task ShouldBeAbleToAdoptDevice()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.AdoptDeviceAsync("{ set mac address}");
+                result.Result.ShouldBe(true);
+            }
+        }
+
+        [Fact(Skip = "Fail's on demo site due to a bad MAC result in the Device Lists")]
+        public async Task ShouldBeAbleToRestartDevice()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var deviceList = await unifiClient.ListDevicesAsync();
+
+                var result = await unifiClient.RestartDeviceAsync(deviceList.Data.First().Mac);
+                result.Result.ShouldBe(true);
+            }
+        }
+
+        [Fact (Skip = "Fail's on demo site due to a bad MAC result in the Device Lists")]
+        public async Task ShouldBeAbleToDisableAp()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var deviceList = await unifiClient.ListDevicesAsync();
+
+                var result = await unifiClient.DisableApAsync(deviceList.Data.First().DeviceId);
+                result.Result.ShouldBe(true);
+
+                await unifiClient.DisableApAsync(deviceList.Data.First().DeviceId, false);
+            }
+        }
+        [Fact(Skip = "Fail's on demo site due to a bad MAC result in the Device Lists")]
+        public async Task ShouldBeAbleToOverrideLed()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var deviceList = await unifiClient.ListDevicesAsync();
+
+                var result = await unifiClient.OverrideLedAsync(deviceList.Data.First().DeviceId, Enumerations.OverrideMode.On);
+                result.Result.ShouldBe(true);
+
+                await unifiClient.OverrideLedAsync(deviceList.Data.First().Mac, Enumerations.OverrideMode.Default);
+            }
+        }
+
+        [Fact(Skip = "Fail's on demo site due to a bad MAC result in the Device Lists")]
+        public async Task ShouldBeAbleToToggleDevice()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var deviceList = await unifiClient.ListDevicesAsync();
+
+                var result = await unifiClient.LocateDeviceAsync(deviceList.Data.First().Mac, true);
+                result.Result.ShouldBe(true);
+
+                await unifiClient.LocateDeviceAsync(deviceList.Data.First().Mac, false);
+            }
+        }
+
+        [Fact(Skip = "Fail's on demo site due to a bad MAC result in the Device Lists")]
+        public async Task ShouldBeAbleToToggleSiteLed()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ToggleSiteLedsAsync(true);
+                result.Result.ShouldBe(true);
+            }
+        }
+        [Fact(Skip = "Fail's on demo site due to a bad MAC result in the Device Lists")]
+        public async Task ShouldBeAbleToRenameDevice()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+                var deviceList = await unifiClient.ListDevicesAsync();
+
+                var result = await unifiClient.RenameDeviceAsync(deviceList.Data.First().DeviceId, "Test");
+                result.Result.ShouldBe(true);
+
+                await unifiClient.RenameDeviceAsync(deviceList.Data.First().DeviceId, deviceList.Data.First().Name);
             }
         }
     }

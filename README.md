@@ -8,8 +8,16 @@ Currently this library supports the following methods.
  - Login
  - Logout
  - GetControllerStatus
+ - ListCountryCodes
  - GetSystemInfo
  - ListSites
+ - ListSitesStats
+ - ListSiteSettings
+ - CreateSite
+ - RenameSite
+ - SetSiteCountry
+ - SetSiteLocale
+ - DeleteSite
  - AuthorizeGuest
  - UnauthorizeGuest
  - ExtendGuest
@@ -33,6 +41,21 @@ Currently this library supports the following methods.
  - UpdateFirewallGroup
  - DeleteFirewallGroup
  - ListFirewallGroups
+ - ListDevices
+ - ListDeviceTags
+ - ListRougeAp
+ - ListKnownRougeAp
+ - AdoptDevice
+ - RestartDevice
+ - RenameDevice
+ - DisableAp
+ - OverrideLed
+ - LocateDevice
+ - SiteLeds
+
+## Install
+Nuget: https://www.nuget.org/packages/UnifiApi/
+Install-Package UnifiApi 
 
 ## Requirements
 

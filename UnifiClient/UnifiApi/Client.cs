@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -13,13 +14,13 @@ using UnifiApi.Responses;
 
 namespace UnifiApi
 {
-    public class Client : IDisposable
+    public partial class Client : IDisposable
     {
         private const string _contentType = "application/json";
         private HttpClient httpClient;
         public string BaseUrl { get; set; }
         public string Site { get; set; }
-        public string Version { get; set; }
+        public Version Version { get; set; }
         public bool IsUp { get; set; }
         public bool IsLoggedIn { get; set; }
         public bool IgnoreSslCertificate { get; set; }
@@ -28,7 +29,7 @@ namespace UnifiApi
         {
             BaseUrl = "https://127.0.0.1:8443";
             Site = "default";
-            Version = "0.0.0";
+            this.Version = Version.Parse("0.0.0");
             IsLoggedIn = false;
             IgnoreSslCertificate = true;
             CreateClient();
@@ -38,7 +39,7 @@ namespace UnifiApi
         {
             BaseUrl = baseUrl;
             Site = string.IsNullOrEmpty(site) ? "default" : site;
-            Version = "0.0.0";
+            this.Version = Version.Parse("0.0.0");
             IsLoggedIn = false;
             IgnoreSslCertificate = ignoreSslCertificate;
             CreateClient();
@@ -88,7 +89,7 @@ namespace UnifiApi
             if (IsLoggedIn)
             {
                 var getControllerStatus = await GetControllerStatusAsync();
-                Version = getControllerStatus.Meta.ServerVersion;
+                Version = Version.Parse(getControllerStatus.Meta.ServerVersion);
                 if (getControllerStatus.Meta.Up != null) IsUp = getControllerStatus.Meta.Up.Value;
             }
 
@@ -137,481 +138,35 @@ namespace UnifiApi
             return JsonConvert.DeserializeObject<BaseResponse<SystemInfo>>(response.Result);
         }
 
-                /// <summary>
-        /// List sites
-        /// </summary>
-        /// <returns>returns a list sites hosted on this controller with some details</returns>
-        public async Task<BaseResponse<Site>> ListSitesAsync()
+        public async Task<BaseResponse<CountryCode>> ListCountryCodesAsync()
         {
-            var path = $"api/self/sites";
+            var path = $"api/s/{Site}/stat/ccode";
 
             var oJsonObject = new JObject();
-            
-            var response = await ExecuteGetCommandAsync(path);
-            return JsonConvert.DeserializeObject<BaseResponse<Site>>(response.Result);
-            
-        }
-
-        #region Guest Methods
-
-        /// <summary>
-        /// Authorize a guest client device.
-        /// </summary>
-        /// <param name="clientMac">The client MAC address.</param>
-        /// <param name="minutes">The minutes (from now) until authorization expires.</param>
-        /// <param name="uploadKbps">The upload limit KBPS.</param>
-        /// <param name="downloadKbps">The download limit KBPS.</param>
-        /// <param name="transferMb">The data transfer limit MB.</param>
-        /// <param name="accessPointMac">The access point mac.</param>
-        /// <returns>BoolResponse. true on success</returns>
-        public async Task<BoolResponse> AuthorizeGuestAsync(string clientMac, int minutes, int? uploadKbps = null, int? downloadKbps = null, int? transferMb = null, string accessPointMac = null)
-        {
-            var path = $"api/s/{Site}/cmd/stamgr";
-
-            var oJsonObject = new JObject();
-            oJsonObject.Add("cmd", "authorize-guest");
-            oJsonObject.Add("mac", clientMac);
-            oJsonObject.Add("minutes", minutes);
-            if (uploadKbps != null)
-                oJsonObject.Add("up", uploadKbps);
-            if (downloadKbps != null)
-                oJsonObject.Add("down", downloadKbps);
-            if (transferMb != null)
-                oJsonObject.Add("bytes", transferMb);
-            if (accessPointMac != null)
-                oJsonObject.Add("ap_mac", accessPointMac);
-
-            return await ExecuteBoolCommandAsync(path, oJsonObject);
-        }
-
-        /// <summary>
-        /// Unauthorize a guest client device.
-        /// </summary>
-        /// <param name="clientMac">The client MAC address.</param>
-        /// <returns>BoolResponse. true on success</returns>
-        public async Task<BoolResponse> UnauthorizeGuestAsync(string clientMac)
-        {
-            var path = $"api/s/{Site}/cmd/stamgr";
-
-            var oJsonObject = new JObject();
-            oJsonObject.Add("cmd", "unauthorize-guest");
-            oJsonObject.Add("mac", clientMac);
-
-            return await ExecuteBoolCommandAsync(path, oJsonObject);
-        }
-
-        /// <summary>
-        /// Extend guest validity
-        /// Unauthorize a guest client device.
-        /// </summary>
-        /// <param name="clientMac">The client MAC address.</param>
-        /// <returns>BoolResponse. true on success</returns>
-        public async Task<BoolResponse> ExtendGuestAsync(string clientMac)
-        {
-            var path = $"api/s/{Site}/cmd/hotspot";
-
-            var oJsonObject = new JObject();
-            oJsonObject.Add("cmd", "extend");
-            oJsonObject.Add("_id", clientMac);
-
-            return await ExecuteBoolCommandAsync(path, oJsonObject);
-        }
-
-        /// <summary>
-        /// List guest devices
-        /// </summary>
-        /// <param name="within">time frame in hours to go back to list guests with valid access (default is 8760 hours or 1 year)</param>
-        /// <returns>returns an array of guest device objects with valid access</returns>
-        public async Task<BaseResponse<Guest>> ListGuestsAsync(int within = 8760)
-        {
-            var path = $"api/s/{Site}/stat/guest";
-
-            var oJsonObject = new JObject();
-            oJsonObject.Add("within", within);
-
-            var response = await ExecuteJsonCommandAsync(path, oJsonObject);
-            
-            return JsonConvert.DeserializeObject<BaseResponse<Guest>>(response.Result);
-        }
-        #endregion
-
-        #region Client Methods
-
-
-        /// <summary>
-        /// Blocks a client device.
-        /// </summary>
-        /// <param name="clientMac">The client MAC address.</param>
-        /// <returns>BoolResponse.</returns>
-        public async Task<BoolResponse> BlockClientAsync(string clientMac)
-        {
-            var path = $"api/s/{Site}/cmd/stamgr";
-
-            var oJsonObject = new JObject();
-            oJsonObject.Add("cmd", "block-sta");
-            oJsonObject.Add("mac", clientMac);
-
-            return await ExecuteBoolCommandAsync(path, oJsonObject);
-        }
-
-        /// <summary>
-        /// Unblocks a client device.
-        /// </summary>
-        /// <param name="clientMac">The client MAC address.</param>
-        /// <returns>BoolResponse.</returns>
-        public async Task<BoolResponse> UnblockClientAsync(string clientMac)
-        {
-            var path = $"api/s/{Site}/cmd/stamgr";
-
-            var oJsonObject = new JObject();
-            oJsonObject.Add("cmd", "unblock-sta");
-            oJsonObject.Add("mac", clientMac);
-
-            return await ExecuteBoolCommandAsync(path, oJsonObject);
-        }
-
-        /// <summary>
-        /// Get details for a single client device
-        /// </summary>
-        /// <param name="clientMac">The client MAC Address.</param>
-        /// <returns>returns an object with the client device information</returns>
-        public async Task<BaseResponse<ClientDevice>> ClientDetailsAsync(string clientMac)
-        {
-            var path = $"api/s/{Site}/stat/user/{clientMac}";
-
-            var oJsonObject = new JObject();
-
-            var response = await ExecuteJsonCommandAsync(path, oJsonObject);
-            return JsonConvert.DeserializeObject<BaseResponse<ClientDevice>>(response.Result);
-
-        }
-
-        /// <summary>
-        /// Show latest 'n' login sessions for a single client device
-        /// </summary>
-        /// <param name="clientMac">Client MAC address</param>
-        /// <param name="limit">maximum number of sessions to get (default value is 5)</param>
-        /// <returns>returns an array of latest login session objects for given client device</returns>
-        public async Task<BaseResponse<ClientLogin>> ShowClientLoginsAsync(string clientMac, int? limit = null)
-        {
-            var path = $"api/s/{Site}/stat/session";
-
-            var oJsonObject = new JObject();
-            oJsonObject.Add("mac", clientMac);
-            oJsonObject.Add("_limit", limit == null ? 5 : limit);
-            oJsonObject.Add("_sort", "-assoc_time");
-
-            var response = await ExecuteJsonCommandAsync(path, oJsonObject);
-            var records = JsonConvert.DeserializeObject<BaseResponse<ClientLogin>>(response.Result);
-            return records; // response;
-        }
-
-        /// <summary>
-        /// List online client device(s)
-        /// </summary>
-        /// <param name="clientMac">Client MAC address</param>
-        /// <returns>returns an array of online client device objects, or in case of a single device request, returns a single client device object.</returns>
-        public async Task<BaseResponse<UnifiClient>> ListOnlineClientsAsync(string clientMac = "")
-        {
-            var path = $"api/s/{Site}/stat/sta/{clientMac}";
-
-            var oJsonObject = new JObject();
-
-            var response = await ExecuteJsonCommandAsync(path, oJsonObject);
-            var records = JsonConvert.DeserializeObject<BaseResponse<UnifiClient>>(response.Result);
-            return records;
-        }
-
-        /// <summary>
-        /// List all client devices ever connected to the site.
-        /// </summary>
-        /// <remarks>
-        /// within is only used to select clients that were online within that period,
-        /// the returned stats per client are all-time totals, irrespective of the value of within
-        /// </remarks>
-        /// <param name="within">hours to go back (default is 8760 hours or 1 year)</param>
-        /// <returns>returns an array of client device objects</returns>
-        public async Task<BaseResponse<ClientList>> ListAllClientsAsync(int within = 8760)
-        {
-            var path = $"api/s/{Site}/stat/alluser";
-
-            var oJsonObject = new JObject();
-            oJsonObject.Add("type", "all");
-            oJsonObject.Add("conn", "all");
-            oJsonObject.Add("within", within);
-
-            var response = await ExecuteJsonCommandAsync(path, oJsonObject);
-            return JsonConvert.DeserializeObject<BaseResponse<ClientList>>(response.Result);
-        }
-
-        /// <summary>
-        /// Lists the known clients.
-        /// </summary>
-        /// <returns>returns a list of known client device</returns>
-        public async Task<BaseResponse<ClientList>> ListKnownClientsAsync()
-        {
-            var path = $"api/s/{Site}/list/user";
 
             var response = await ExecuteGetCommandAsync(path);
-            return JsonConvert.DeserializeObject<BaseResponse<ClientList>>(response.Result);
-       }
 
-        /// <summary>
-        /// Add or Modify a client device note.
-        /// </summary>
-        /// <param name="clientMac">The client mac.</param>
-        /// <param name="note">The note.</param>
-        /// <returns>BoolResponse.</returns>
-        /// <remarks>When note is empty or not set, the existing note for the user will be removed and "noted" attribute set to false</remarks>
-        public async Task<BoolResponse> AddClientNoteAsync(string clientMac, string note = "")
-        {
-            return await SetClientNoteAsync(clientMac, note);
+            return JsonConvert.DeserializeObject<BaseResponse<CountryCode>>(response.Result);
         }
 
-        /// <summary>
-        /// Removes the client note.
-        /// </summary>
-        /// <param name="clientMac">The client mac.</param>
-        /// <returns>BoolResponse.</returns>
-        public async Task<BoolResponse> RemoveClientNoteAsync(string clientMac)
-        {
-            return await SetClientNoteAsync(clientMac, "");
-        }
-
-        /// <summary>
-        /// Add/modify/remove a client device note.
-        /// </summary>
-        /// <param name="clientMac">The client mac.</param>
-        /// <param name="note">The note to be applied to the user device.</param>
-        /// <returns>BoolResponse.</returns>
-        /// <remarks>When note is empty or not set, the existing note for the user will be removed and "noted" attribute set to false</remarks>
-        public async Task<BoolResponse> SetClientNoteAsync(string clientMac, string note)
-        {
-            var path = $"api/s/{Site}/upd/user/{clientMac}";
-
-            var oJsonObject = new JObject();
-            oJsonObject.Add("note", note);
-            oJsonObject.Add("noted", !string.IsNullOrEmpty(note));
-
-            return await ExecuteBoolCommandAsync(path, oJsonObject);
-        }
-
-        #endregion
-
-        #region Groups
-
-        /// <summary>
-        /// Create user group
-        /// </summary>
-        /// <param name="groupName">name of the user group</param>
-        /// <param name="maxRateDown">limit download bandwidth in Kbps (default = -1, which sets bandwidth to unlimited)</param>
-        /// <param name="maxRatepUp">limit upload bandwidth in Kbps (default = -1, which sets bandwidth to unlimited)</param>
-        /// <returns>an array containing a single object with attributes of the new usergroup ("_id", "name", "qos_rate_max_down", "qos_rate_max_up", "site_id") on success</returns>
-        public async Task<BaseResponse<UserGroup>> CreateUserGroupAsync(string groupName, int maxRateDown = -1, int maxRatepUp = -1)
-        {
-            var path = $"api/s/{Site}/rest/usergroup";
-
-            var oJsonObject = new JObject();
-            oJsonObject.Add("name", groupName);
-            oJsonObject.Add("qos_rate_max_down", maxRateDown);
-            oJsonObject.Add("qos_rate_max_up", maxRatepUp);
-
-            var response = await ExecuteJsonCommandAsync(path, oJsonObject);
-            var records = JsonConvert.DeserializeObject<BaseResponse<UserGroup>>(response.Result);
-            return records;
-        }
-
-        /// <summary>
-        /// Delete user group
-        /// </summary>
-        /// <returns>true on success</returns>
-        public async Task<BoolResponse> DeleteUserGroupAsync(string groupId)
-        {
-            var path = $"api/s/{Site}/rest/usergroup/{groupId}";
-
-            var response = await ExecuteDeleteCommandAsync(path);
-
-            return response;
-
-        }
-
-        /// <summary>
-        /// Update user group
-        /// </summary>
-        /// <param name="groupId">id of the user group</param>
-        /// <param name="siteId">id of the site</param>
-        /// <param name="groupName">name of the user group</param>
-        /// <param name="maxRateDown">limit download bandwidth in Kbps (default = -1, which sets bandwidth to unlimited)</param>
-        /// <param name="maxRatepUp">limit upload bandwidth in Kbps (default = -1, which sets bandwidth to unlimited)</param>
-        /// <returns>returns an array containing a single object with attributes of the updated usergroup on success</returns>
-        public async Task<BaseResponse<UserGroup>> UpdateUserGroupAsync(string groupId, string siteId, string groupName, int maxRateDown = -1, int maxRatepUp = -1)
-        {
-            var path = $"api/s/{Site}/rest/usergroup/{groupId}";
-
-            var oJsonObject = new JObject();
-            oJsonObject.Add("_id", groupId);
-            oJsonObject.Add("name", groupName);
-            oJsonObject.Add("qos_rate_max_down", maxRateDown);
-            oJsonObject.Add("qos_rate_max_up", maxRatepUp);
-            oJsonObject.Add("site_id", siteId);
-
-            var response = await ExecuteJsonCommandAsync(path, oJsonObject);
-            var records = JsonConvert.DeserializeObject<BaseResponse<UserGroup>>(response.Result);
-            return records;
-        }
-
-        /// <summary>
-        /// Assigns the client to user group.
-        /// </summary>
-        /// <param name="clientId">The id of the user device in the Unifi Controller to be modified.</param>
-        /// <param name="groupId">The id of the group to assign user to.</param>
-        /// <returns>return true on success</returns>
-        public async Task<BoolResponse> AssignClientToUserGroupAsync(string clientId, string groupId)
-        {
-            var path = $"api/s/{Site}/upd/user/{clientId}";
-
-            var oJsonObject = new JObject();
-            oJsonObject.Add("usergroup_id", groupId);
-
-            var response = await ExecuteBoolCommandAsync(path, oJsonObject);
-            return response;
-        }
-
-        /// <summary>
-        /// list user groups.
-        /// </summary>
-        /// <returns>returns a list of user group</returns>
-        public async Task<BaseResponse<UserGroup>> ListUserGroupsAsync()
-        {
-            var path = $"api/s/{Site}/list/usergroup";
-
-            var oJsonObject = new JObject();
-
-            var response = await ExecuteJsonCommandAsync(path, oJsonObject);
-
-            return  JsonConvert.DeserializeObject<BaseResponse<UserGroup>>(response.Result);
-        }
-
-        #endregion
-
-        #region Firewall
-
-        /// <summary>
-        /// create firewall groups as an asynchronous operation.
-        /// </summary>
-        /// <param name="name">The name.</param>
-        /// <param name="type">The type.</param>
-        /// <param name="members">The members.</param>
-        /// <returns>returns a list containing a single firewall group of the created firewall group on success</returns>
-        public async Task<BaseResponse<FirewallGroup>> CreateFirewallGroupAsync(string name, GroupType type, List<string> members)
-        {
-            var path = $"/api/s/{Site}/rest/firewallgroup";
-            var oJsonObject = new JObject();
-            oJsonObject.Add("name", name);
-            oJsonObject.Add("group_type", type.GetStringValue());
-            oJsonObject.Add("group_members", new JArray {members.ToArray()});
-            
-            var response = await ExecuteJsonCommandAsync(path, oJsonObject);
-            return JsonConvert.DeserializeObject<BaseResponse<FirewallGroup>>(response.Result);
-        }
-
-        /// <summary>
-        /// update firewall group.
-        /// </summary>
-        /// <param name="group">The firewall group.</param>
-        /// <returns>returns a list containing a single firewall group of the updated firewall group on success</returns>
-        public async Task<BaseResponse<FirewallGroup>> UpdateFirewallGroupAsync(FirewallGroup group)
-        {
-            var path = $"/api/s/{Site}/rest/firewallgroup/{group.Id}";
-
-            var oJsonObject = JObject.FromObject(group);
-
-            var response = await ExecuteJsonCommandAsync(path, oJsonObject, "PUT");
-            return JsonConvert.DeserializeObject<BaseResponse<FirewallGroup>>(response.Result);
-        }
-
-        /// <summary>
-        /// update firewall group.
-        /// </summary>
-        /// <param name="groupId">The group identifier.</param>
-        /// <param name="siteId">The site identifier.</param>
-        /// <param name="name">The name.</param>
-        /// <param name="type">The type.</param>
-        /// <param name="members">The members.</param>
-        /// <returns>returns a list containing a single firewall group of the updated firewall group on success</returns>
-        public async Task<BaseResponse<FirewallGroup>> UpdateFirewallGroupAsync(string groupId, string siteId, string name, GroupType type, List<string> members)
-        {
-            return await UpdateFirewallGroupAsync(new FirewallGroup
-            {
-                Id = groupId,
-                SiteId = siteId,
-                Name = name,
-                GroupType = type,
-                GroupMembers = members
-            });
-        }
-
-        /// <summary>
-        /// delete firewall groups.
-        /// </summary>
-        /// <param name="groupId">The firewall group identifier.</param>
-        /// <returns>returns true on success</returns>
-        public async Task<BoolResponse> DeleteFirewallGroupAsync(string groupId)
-        {
-            var path = $"/api/s/{Site}/rest/firewallgroup/{groupId}";
-
-            var response = await ExecuteDeleteCommandAsync(path);
-
-            return response;
-        }
-
-        /// <summary>
-        /// list firewall groups.
-        /// </summary>
-        /// <returns>returns list of firewall groups</returns>
-        public async Task<BaseResponse<FirewallGroup>> ListFirewallGroupsAsync()
-        {
-            var path = $"/api/s/{Site}/rest/firewallgroup";
-
-            var response = await ExecuteGetCommandAsync(path);
-            return JsonConvert.DeserializeObject<BaseResponse<FirewallGroup>>(response.Result);
-        }
-
-        #endregion
-
-        #region Stats
-
-        /// <summary>
-        /// list health metrics.
-        /// </summary>
-        /// <returns>returns an array of health metrics</returns>
-        public async Task<BaseResponse<Health>> ListHealthAsync()
-        {
-            var path = $"/api/s/{Site}/stat/health";
-
-            var response = await ExecuteGetCommandAsync(path);
-            return JsonConvert.DeserializeObject<BaseResponse<Health>>(response.Result);
-        }
-
-        public async Task<BaseResponse<DashboardMetric>> ListDashboardAsync(bool fiveMinScale = false)
-        {
-
-            var path = $"/api/s/{Site}/stat/dashboard{(fiveMinScale ? "?scale=5minutes" : "")}";
-
-            var response = await ExecuteGetCommandAsync(path);
-            return JsonConvert.DeserializeObject<BaseResponse<DashboardMetric>>(response.Result);
-        }
-
-        #endregion
 
         #region Commands
 
-        private async Task<BoolResponse> ExecuteBoolCommandAsync(string path, JObject jsonData)
+        private async Task<BoolResponse> ExecuteBoolCommandAsync(string path, JObject jsonData, string requestType = "POST")
         {
             var returnResponse = new BoolResponse();
 
-            var response = await httpClient.PostAsync(path, new StringContent(jsonData.ToString(), Encoding.UTF8, _contentType));
+            HttpResponseMessage response;
+            switch (requestType.ToUpper())
+            {
+                case "PUT":
+                    response = await httpClient.PutAsync(path, new StringContent(jsonData.ToString(), Encoding.UTF8, _contentType));
+                    break;
 
+                default:
+                    response = await httpClient.PostAsync(path, new StringContent(jsonData.ToString(), Encoding.UTF8, _contentType));
+                    break;
+            }
             returnResponse.StatusCode = response.StatusCode;
 
             if (response.IsSuccessStatusCode)
