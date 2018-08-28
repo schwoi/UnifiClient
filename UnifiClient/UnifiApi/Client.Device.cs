@@ -18,8 +18,9 @@ namespace UnifiApi
         public async Task<BaseResponse<Device>> ListDevicesAsync(string deviceMac = null)
         {
             var path = $"api/s/{Site}/stat/device/{deviceMac}";
-
+            
             var response = await ExecuteGetCommandAsync(path);
+            //TODO: Fix the deserialization to handle bad MAC addresses
             return JsonConvert.DeserializeObject<BaseResponse<Device>>(response.Result);
         }
 
