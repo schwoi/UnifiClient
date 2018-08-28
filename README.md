@@ -52,6 +52,7 @@ Currently this library supports the following methods.
  - OverrideLed
  - LocateDevice
  - SiteLeds
+ - ListBackups
 
 ## Install
 Nuget: https://www.nuget.org/packages/UnifiApi/

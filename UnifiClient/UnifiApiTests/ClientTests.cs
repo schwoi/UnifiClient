@@ -878,5 +878,19 @@ namespace UnifiApiTests
                 await unifiClient.RenameDeviceAsync(deviceList.Data.First().DeviceId, deviceList.Data.First().Name);
             }
         }
+
+        [Fact]
+        public async Task ShouldBeAbleToListBackups()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+                
+                var result = await unifiClient.ListBackupsAsync();
+                result.Meta.Rc.ShouldBe("ok");
+                result.Data.Count.ShouldBeGreaterThanOrEqualTo(1);
+            }
+        }
     }
 }

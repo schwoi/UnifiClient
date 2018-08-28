@@ -47,17 +47,24 @@ namespace UnifiApi
 
         private void CreateClient()
         {
-            httpClient = new HttpClient();
+
+            var httpClientHandler = new HttpClientHandler();
+
+            if (IgnoreSslCertificate)
+            {
+                httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+                {
+                    return true;
+                };
+                ServicePointManager.Expect100Continue = true;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            }
+
+            httpClient = new HttpClient(httpClientHandler);
             httpClient.BaseAddress = new Uri(BaseUrl);
             httpClient.DefaultRequestHeaders.Accept.Clear();
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(_contentType));
 
-            if (IgnoreSslCertificate)
-            {
-                ServicePointManager.Expect100Continue = true;
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
-            }
         }
 
         public async void Dispose()
@@ -66,6 +73,7 @@ namespace UnifiApi
                 await LogoutAsync();
 
             httpClient.Dispose();
+            
         }
 
 
@@ -138,15 +146,28 @@ namespace UnifiApi
             return JsonConvert.DeserializeObject<BaseResponse<SystemInfo>>(response.Result);
         }
 
+        /// <summary>
+        /// Lists the country codes.
+        /// </summary>
+        /// <returns>List of <c>CountryCode</c></returns>
         public async Task<BaseResponse<CountryCode>> ListCountryCodesAsync()
         {
             var path = $"api/s/{Site}/stat/ccode";
 
-            var oJsonObject = new JObject();
-
             var response = await ExecuteGetCommandAsync(path);
 
             return JsonConvert.DeserializeObject<BaseResponse<CountryCode>>(response.Result);
+        }
+
+        public async Task<BaseResponse<Backup>> ListBackupsAsync()
+        {
+            var path = $"api/s/{Site}/cmd/backup";
+
+            var oJsonObject = new JObject();
+            oJsonObject.Add("cmd", "list-backups");
+
+            var response = await ExecuteJsonCommandAsync(path, oJsonObject);
+            return JsonConvert.DeserializeObject<BaseResponse<Backup>>(response.Result);
         }
 
 
