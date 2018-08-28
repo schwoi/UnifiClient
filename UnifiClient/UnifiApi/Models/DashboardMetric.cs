@@ -7,7 +7,7 @@ namespace UnifiApi.Models
     public class DashboardMetric
     {
         [JsonProperty(PropertyName = "time")]
-        public double TimeSeconds { get; set; }
+        public long TimeSeconds { get; set; }
         public DateTime Time => TimeSeconds.ToLocalDateTime();
 
         [JsonProperty(PropertyName = "rx_bytes-r")]
