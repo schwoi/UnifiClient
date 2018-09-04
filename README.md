@@ -2,6 +2,40 @@
 
 A .NET Standard library that provides access to Ubiquiti's **UniFi Controller API**, versions 4.X.X and 5.X.X of the UniFi Controller software are supported.
 
+## Wrapper Usage
+
+```csharp
+//get all clients on the default site
+using (var unifiClient = new Client("https://demo.ubnt.com/"))
+{
+    await unifiClient.LoginAsync("superuser", "password");
+    var result = await unifiClient.ListAllClientsAsync();
+}
+
+//get all clients on the default site ignoring invalid certifiate
+using (var unifiClient = new Client("https://localhost:8443/", null, true))
+{
+    await unifiClient.LoginAsync("superuser", "password");
+    var result = await unifiClient.ListAllClientsAsync();
+}
+
+//get change site
+using (var unifiClient = new Client("https://localhost:8443/", null, true))
+{
+    await unifiClient.LoginAsync("superuser", "password");
+    var siteList = await unifiClient.ListSitesAsync();
+
+	unifiClient.Site = result.siteList.FirstOrDefault(x => x.Name != "default")?.Name;
+	
+	var result = await unifiClient.ListAllClientsAsync();
+}
+
+//Set site on connection
+using (var unifiClient = new Client("https://localhost:8443/", "abc123", true))
+{
+}
+```
+
 ## Methods and functions supported
 
 Currently this library supports the following methods.
@@ -56,6 +90,7 @@ Currently this library supports the following methods.
 
 ## Install
 Nuget: https://www.nuget.org/packages/UnifiApi/
+
 Install-Package UnifiApi 
 
 ## Requirements

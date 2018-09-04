@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Xml.XPath;
 using Newtonsoft.Json;
 using Shouldly;
 using UnifiApi;
@@ -99,6 +97,7 @@ namespace UnifiApiTests
                 loginResult.Result.ShouldBeTrue();
 
                 var result = await unifiClient.ListSitesAsync();
+
                 result.ShouldNotBeNull();
                 result.Meta.Rc.ToLower().ShouldBe("ok");
                 result.Data.Count.ShouldBeGreaterThan(0);
@@ -202,9 +201,8 @@ namespace UnifiApiTests
                 loginResult.Result.ShouldBeTrue();
 
                 var result = await unifiClient.ListSiteSettingsAsync();
-                //result.Data.ShouldBe();
-
-                //await unifiClient.DeleteSiteAsync(createResult.Data.First().Id);
+                result.Meta.Rc.ShouldBe("ok");
+                result.Data.Count.ShouldBeGreaterThanOrEqualTo(1);
             }
         }
 
@@ -851,7 +849,7 @@ namespace UnifiApiTests
             }
         }
 
-        [Fact(Skip = "Fail's on demo site due to a bad MAC result in the Device Lists")]
+        [Fact(Skip = "Fail's on demo site due.")]
         public async Task ShouldBeAbleToToggleSiteLed()
         {
             using (var unifiClient = new Client(_url, null, true))
@@ -860,6 +858,27 @@ namespace UnifiApiTests
                 loginResult.Result.ShouldBeTrue();
 
                 var result = await unifiClient.ToggleSiteLedsAsync(true);
+                result.Result.ShouldBe(true);
+            }
+        }
+
+        [Fact(Skip = "Fail's on demo site due.")]
+        public async Task ShouldBeAbleToSetSnmp()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var site = await unifiClient.GetSiteDetailAsync();
+
+                var smtpSetting = new SnmpSetting
+                {
+                    Community = "SetSnmp",
+                    Enabled = true,
+                    SiteId = site.Id
+                };
+                var result = await unifiClient.SetSiteSnmp("", smtpSetting);
                 result.Result.ShouldBe(true);
             }
         }

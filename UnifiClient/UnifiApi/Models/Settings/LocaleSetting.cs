@@ -5,13 +5,12 @@ using Newtonsoft.Json;
 
 namespace UnifiApi.Models
 {
-    public class LocaleSetting
+    public class LocaleSetting : BaseSetting
     {
-        [JsonProperty("key")]
-        public string Key => "locale";
-
-        [JsonProperty("site_id", NullValueHandling = NullValueHandling.Ignore)]
-        public string SiteId { get; set; }
+        public LocaleSetting()
+        {
+            Key = "locale";
+        }
 
         [JsonProperty("timezone", NullValueHandling = NullValueHandling.Ignore)]
         public string Timezone { get; set; }

@@ -5,14 +5,13 @@ using Newtonsoft.Json;
 
 namespace UnifiApi.Models
 {
-    public class CountrySetting
+    public class CountrySetting : BaseSetting
     {
-        [JsonProperty("key")]
-        public string Key => "country";
-
-        [JsonProperty("site_id", NullValueHandling = NullValueHandling.Ignore)]
-        public string SiteId { get; set; }
-
+        public CountrySetting()
+        {
+            Key = "country";
+        }
+     
         [JsonProperty("code", NullValueHandling = NullValueHandling.Ignore)]
         public long? Code { get; set; }
     }
