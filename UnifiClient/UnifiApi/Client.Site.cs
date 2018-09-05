@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Dynamic;
+using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -20,6 +23,16 @@ namespace UnifiApi
 
             var response = await ExecuteGetCommandAsync(path);
             return JsonConvert.DeserializeObject<BaseResponse<Site>>(response.Result);
+        }
+
+        public async Task<Site> GetSiteDetailAsync()
+        {
+            var path = $"api/self/sites";
+
+            var response = await ExecuteGetCommandAsync(path);
+            var baseResponse = JsonConvert.DeserializeObject<BaseResponse<Site>>(response.Result);
+
+            return baseResponse.Data.FirstOrDefault(x => x.Name.Equals(Site));
         }
 
         /// <summary>
@@ -78,16 +91,91 @@ namespace UnifiApi
             return await ExecuteBoolCommandAsync(path, oJsonObject);
         }
 
+
         /// <summary>
-        /// Lists the site settings.
+        /// list site settings as JSON object.
         /// </summary>
-        /// <param name="siteName">Name of the site to list the settings for.</param>
-        /// <returns>returns Site Object</returns>
-        public async Task<BaseResponse<Site>> ListSiteSettingsAsync(string siteName = null)
+        /// <param name="siteName">Name of the site.</param>
+        /// <returns>returns List of JSON Objects</returns>
+        public async Task<BaseResponse<JObject>> ListSiteSettingsAsJObjectAsync(string siteName = null)
         {
             var path = $"api/s/{(siteName ?? Site)}/get/setting";
             var response = await ExecuteGetCommandAsync(path);
-            return JsonConvert.DeserializeObject<BaseResponse<Site>>(response.Result);
+
+            return JsonConvert.DeserializeObject<BaseResponse<JObject>>(response.Result);
+        }
+
+
+            /// <summary>
+            /// Lists the site settings.
+            /// </summary>
+            /// <param name="siteName">Name of the site to list the settings for.</param>
+            /// <returns>returns Site Settings Object</returns>
+            public async Task<BaseResponse<SiteSettings>> ListSiteSettingsAsync(string siteName = null)
+        {
+            var returnObject = new SiteSettings();
+
+            var response = await ListSiteSettingsAsJObjectAsync(siteName);
+
+            foreach (dynamic obj in response.Data)
+            {
+                switch (obj["key"].ToString())
+                {
+                    case "auto_speedtest":
+                        returnObject.AutoSpeedTest = obj.ToObject<AutoSpeedtestSetting>();
+                        break;
+                    case "connectivity":
+                        returnObject.Connectivity = obj.ToObject<ConnectivitySetting>();
+                        break;
+                    case "country":
+                        returnObject.Country = obj.ToObject<CountrySetting>();
+                        break;
+                    case "dpi":
+                        returnObject.Dpi = obj.ToObject<DpiSetting>();
+                        break;
+                    case "guest_access":
+                        returnObject.GuestAccess = obj.ToObject<GuestAccessSetting>();
+                        break;
+                    case "super_identity":
+                        returnObject.Identity = obj.ToObject<IdentitySetting>();
+                        break;
+                    case "locale":
+                        returnObject.Locale = obj.ToObject<LocaleSetting>();
+                        break;
+                    case "mgmt":
+                        returnObject.Managememt = obj.ToObject<MgmtSetting>();
+                        break;
+                    case "ntp":
+                        returnObject.Ntp = obj.ToObject<NtpSetting>();
+                        break;
+                    case "porta":
+                        returnObject.Porta = obj.ToObject<PortaSetting>();
+                        break;
+                    case "radius":
+                        returnObject.Radius = obj.ToObject<RadiusSetting>();
+                        break;
+                    case "rsyslogd":
+                        returnObject.RsysLogd = obj.ToObject<RsyslogdSetting>();
+                        break;
+                    case "super_smtp":
+                        returnObject.Smtp = obj.ToObject<SmtpSetting>();
+                        break;
+                    case "snmp":
+                        returnObject.Snmp = obj.ToObject<SnmpSetting>();
+                        break;
+                    case "super_mgmt":
+                        returnObject.SuperManagement = obj.ToObject<SuperMgmtSetting>();
+                        break;
+                    case "usg":
+                        returnObject.Usg = obj.ToObject<UsgSetting>();
+                        break;
+                    default:
+                        returnObject.UnmappedObjects.Add(obj);
+                        break;
+                }
+            }
+
+            return new BaseResponse<SiteSettings>{Meta = response.Meta, Data = new List<SiteSettings>{ returnObject }};
         }
 
         /// <summary>
@@ -130,6 +218,13 @@ namespace UnifiApi
             var path = $"api/s/{Site}/set/setting/mgmt";
             var oJsonObject = new JObject();
             oJsonObject.Add("led_enabled", enable);
+            return await ExecuteBoolCommandAsync(path, oJsonObject);
+        }
+
+        public async Task<BoolResponse> SetSiteSnmp(string snmpId, SnmpSetting setting)
+        {
+            var path = $"api/s/{Site}/rest/setting/snmp/{snmpId}";
+            var oJsonObject = JObject.FromObject(setting);
             return await ExecuteBoolCommandAsync(path, oJsonObject);
         }
     }
