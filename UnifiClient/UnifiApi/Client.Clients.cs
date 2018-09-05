@@ -14,10 +14,11 @@ namespace UnifiApi
         /// Blocks a client device.
         /// </summary>
         /// <param name="clientMac">The client MAC address.</param>
+        /// <param name="siteName">Name of the site. If null it will use the site specified in the client.</param>
         /// <returns>BoolResponse.</returns>
-        public async Task<BoolResponse> BlockClientAsync(string clientMac)
+        public async Task<BoolResponse> BlockClientAsync(string clientMac, string siteName = null)
         {
-            var path = $"api/s/{Site}/cmd/stamgr";
+            var path = $"api/s/{(siteName ?? Site)}/cmd/stamgr";
 
             var oJsonObject = new JObject();
             oJsonObject.Add("cmd", "block-sta");
@@ -30,10 +31,11 @@ namespace UnifiApi
         /// Unblocks a client device.
         /// </summary>
         /// <param name="clientMac">The client MAC address.</param>
+        /// <param name="siteName">Name of the site. If null it will use the site specified in the client.</param>
         /// <returns>BoolResponse.</returns>
-        public async Task<BoolResponse> UnblockClientAsync(string clientMac)
+        public async Task<BoolResponse> UnblockClientAsync(string clientMac, string siteName = null)
         {
-            var path = $"api/s/{Site}/cmd/stamgr";
+            var path = $"api/s/{(siteName ?? Site)}/cmd/stamgr";
 
             var oJsonObject = new JObject();
             oJsonObject.Add("cmd", "unblock-sta");
@@ -46,10 +48,11 @@ namespace UnifiApi
         /// Get details for a single client device
         /// </summary>
         /// <param name="clientMac">The client MAC Address.</param>
+        /// <param name="siteName">Name of the site. If null it will use the site specified in the client.</param>
         /// <returns>returns an object with the client device information</returns>
-        public async Task<BaseResponse<ClientDevice>> ClientDetailsAsync(string clientMac)
+        public async Task<BaseResponse<ClientDevice>> ClientDetailsAsync(string clientMac, string siteName = null)
         {
-            var path = $"api/s/{Site}/stat/user/{clientMac}";
+            var path = $"api/s/{(siteName ?? Site)}/stat/user/{clientMac}";
 
             var oJsonObject = new JObject();
 
@@ -62,10 +65,11 @@ namespace UnifiApi
         /// </summary>
         /// <param name="clientMac">Client MAC address</param>
         /// <param name="limit">maximum number of sessions to get (default value is 5)</param>
+        /// <param name="siteName">Name of the site. If null it will use the site specified in the client.</param>
         /// <returns>returns an array of latest login session objects for given client device</returns>
-        public async Task<BaseResponse<ClientLogin>> ShowClientLoginsAsync(string clientMac, int? limit = null)
+        public async Task<BaseResponse<ClientLogin>> ShowClientLoginsAsync(string clientMac, int? limit = null, string siteName = null)
         {
-            var path = $"api/s/{Site}/stat/session";
+            var path = $"api/s/{(siteName ?? Site)}stat/session";
 
             var oJsonObject = new JObject();
             oJsonObject.Add("mac", clientMac);
@@ -81,10 +85,11 @@ namespace UnifiApi
         /// List online client device(s)
         /// </summary>
         /// <param name="clientMac">Client MAC address</param>
+        /// <param name="siteName">Name of the site. If null it will use the site specified in the client.</param>
         /// <returns>returns an array of online client device objects, or in case of a single device request, returns a single client device object.</returns>
-        public async Task<BaseResponse<UnifiClient>> ListOnlineClientsAsync(string clientMac = "")
+        public async Task<BaseResponse<UnifiClient>> ListOnlineClientsAsync(string clientMac = "", string siteName = null)
         {
-            var path = $"api/s/{Site}/stat/sta/{clientMac}";
+            var path = $"api/s/{(siteName ?? Site)}/stat/sta/{clientMac}";
 
             var oJsonObject = new JObject();
 
@@ -101,10 +106,11 @@ namespace UnifiApi
         /// the returned stats per client are all-time totals, irrespective of the value of within
         /// </remarks>
         /// <param name="within">hours to go back (default is 8760 hours or 1 year)</param>
+        /// <param name="siteName">Name of the site. If null it will use the site specified in the client.</param>
         /// <returns>returns an array of client device objects</returns>
-        public async Task<BaseResponse<ClientList>> ListAllClientsAsync(int within = 8760)
+        public async Task<BaseResponse<ClientList>> ListAllClientsAsync(int within = 8760, string siteName = null)
         {
-            var path = $"api/s/{Site}/stat/alluser";
+            var path = $"api/s/{(siteName ?? Site)}/stat/alluser";
 
             var oJsonObject = new JObject();
             oJsonObject.Add("type", "all");
@@ -118,10 +124,11 @@ namespace UnifiApi
         /// <summary>
         /// Lists the known clients.
         /// </summary>
+        /// <param name="siteName">Name of the site. If null it will use the site specified in the client.</param>
         /// <returns>returns a list of known client device</returns>
-        public async Task<BaseResponse<ClientList>> ListKnownClientsAsync()
+        public async Task<BaseResponse<ClientList>> ListKnownClientsAsync(string siteName = null)
         {
-            var path = $"api/s/{Site}/list/user";
+            var path = $"api/s/{(siteName ?? Site)}/list/user";
 
             var response = await ExecuteGetCommandAsync(path);
             return JsonConvert.DeserializeObject<BaseResponse<ClientList>>(response.Result);
@@ -132,21 +139,23 @@ namespace UnifiApi
         /// </summary>
         /// <param name="clientMac">The client mac.</param>
         /// <param name="note">The note.</param>
+        /// <param name="siteName">Name of the site. If null it will use the site specified in the client.</param>
         /// <returns>BoolResponse.</returns>
         /// <remarks>When note is empty or not set, the existing note for the user will be removed and "noted" attribute set to false</remarks>
-        public async Task<BoolResponse> AddClientNoteAsync(string clientMac, string note = "")
+        public async Task<BoolResponse> AddClientNoteAsync(string clientMac, string note = "", string siteName = null)
         {
-            return await SetClientNoteAsync(clientMac, note);
+            return await SetClientNoteAsync(clientMac, note, siteName);
         }
 
         /// <summary>
         /// Removes the client note.
         /// </summary>
         /// <param name="clientMac">The client mac.</param>
+        /// <param name="siteName">Name of the site. If null it will use the site specified in the client.</param>
         /// <returns>BoolResponse.</returns>
-        public async Task<BoolResponse> RemoveClientNoteAsync(string clientMac)
+        public async Task<BoolResponse> RemoveClientNoteAsync(string clientMac, string siteName = null)
         {
-            return await SetClientNoteAsync(clientMac, "");
+            return await SetClientNoteAsync(clientMac, "", siteName);
         }
 
         /// <summary>
@@ -154,11 +163,12 @@ namespace UnifiApi
         /// </summary>
         /// <param name="clientMac">The client mac.</param>
         /// <param name="note">The note to be applied to the user device.</param>
+        /// <param name="siteName">Name of the site. If null it will use the site specified in the client.</param>
         /// <returns>BoolResponse.</returns>
         /// <remarks>When note is empty or not set, the existing note for the user will be removed and "noted" attribute set to false</remarks>
-        public async Task<BoolResponse> SetClientNoteAsync(string clientMac, string note)
+        public async Task<BoolResponse> SetClientNoteAsync(string clientMac, string note, string siteName = null)
         {
-            var path = $"api/s/{Site}/upd/user/{clientMac}";
+            var path = $"api/s/{(siteName ?? Site)}/upd/user/{clientMac}";
 
             var oJsonObject = new JObject();
             oJsonObject.Add("note", note);
