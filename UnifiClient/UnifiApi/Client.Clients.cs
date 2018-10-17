@@ -1,6 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using UnifiApi.Helpers;
 using UnifiApi.Models;
 using UnifiApi.Responses;
 
@@ -40,6 +43,33 @@ namespace UnifiApi
             var oJsonObject = new JObject();
             oJsonObject.Add("cmd", "unblock-sta");
             oJsonObject.Add("mac", clientMac);
+
+            return await ExecuteBoolCommandAsync(path, oJsonObject);
+        }
+
+        public async Task<BoolResponse> ForgetClientAsync(string clientMacAddress, string siteName = null)
+        {
+            return await ForgetClientsAsync(new List<string>() {clientMacAddress}, siteName);
+        }
+        /// <summary>
+        /// Forget one or more client devices.
+        /// </summary>
+        /// <param name="clientMacAddresses">List of client mac addresses.</param>
+        /// <param name="siteName">Name of the site. If null it will use the site specified in the client.</param>
+        /// <returns>BoolResponse</returns>
+        /// <exception cref="NotSupportedException">The controller version does not accept this request.</exception>
+        [MinimumVersionRequired(5, 9)]
+        public async Task<BoolResponse> ForgetClientsAsync(List<string> clientMacAddresses, string siteName = null)
+        {
+            //TODO: Confirm working as expected.
+            if (!Version.IsValid())
+                throw new NotSupportedException("The controller version does not accept this request.");
+
+            var path = $"api/s/{(siteName ?? Site)}/cmd/stamgr";
+
+            var oJsonObject = new JObject();
+            oJsonObject.Add("cmd", "forget-sta");
+            oJsonObject.Add("macs", new JArray { clientMacAddresses.ToArray() });
 
             return await ExecuteBoolCommandAsync(path, oJsonObject);
         }
