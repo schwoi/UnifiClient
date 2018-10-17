@@ -159,6 +159,10 @@ namespace UnifiApi
             return JsonConvert.DeserializeObject<BaseResponse<CountryCode>>(response.Result);
         }
 
+        /// <summary>
+        /// List auto backups.
+        /// </summary>
+        /// <returns>return an list of <c>Backup</c> objects</returns>
         public async Task<BaseResponse<Backup>> ListBackupsAsync()
         {
             var path = $"api/s/{Site}/cmd/backup";
@@ -206,7 +210,11 @@ namespace UnifiApi
             }
             else
             {
-                returnResponse.Response = response.ReasonPhrase;
+
+                var responseString = await response.Content.ReadAsStringAsync();
+                var baseResponse = JsonConvert.DeserializeObject<BaseResponse>(responseString);
+
+                returnResponse.Response = $"{response.ReasonPhrase}\n{baseResponse.Meta.Message}\n{baseResponse.Meta.Reason}";
             }
 
             return returnResponse;
