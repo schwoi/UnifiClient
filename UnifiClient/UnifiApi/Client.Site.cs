@@ -183,9 +183,9 @@ namespace UnifiApi
         /// </summary>
         /// <param name="siteId">The site identifier.</param>
         /// <returns>return true on success</returns>
-        public async Task<BoolResponse> DeleteSiteAsync(string siteId)
+        public async Task<BoolResponse> DeleteSiteAsync(string siteId, string siteName = null)
         {
-            var path = $"api/s/{Site}/cmd/sitemgr";
+            var path = $"api/s/{(siteName ?? Site)}/cmd/sitemgr";
             var oJsonObject = new JObject();
             oJsonObject.Add("site", siteId);
             oJsonObject.Add("cmd", "delete-site");
@@ -212,20 +212,150 @@ namespace UnifiApi
         /// Toggle LEDs of all the access points ON or OFF
         /// </summary>
         /// <param name="enable">if set to <c>true</c> [enable]. true will switch LEDs of all the access points ON, false will switch them OFF</param>
+        /// <param name="siteName">Name of the site.</param>
         /// <returns>returns <c>true</c> on success</returns>
-        public async Task<BoolResponse> ToggleSiteLedsAsync(bool enable)
+        public async Task<BoolResponse> ToggleSiteLedsAsync(bool enable,string siteName = null)
         {
-            var path = $"api/s/{Site}/set/setting/mgmt";
+            var path = $"api/s/{(siteName ?? Site)}/set/setting/mgmt";
             var oJsonObject = new JObject();
             oJsonObject.Add("led_enabled", enable);
             return await ExecuteBoolCommandAsync(path, oJsonObject);
         }
 
-        public async Task<BoolResponse> SetSiteSnmp(string snmpId, SnmpSetting setting)
+        /// <summary>
+        /// Sets the site SNMP.
+        /// </summary>
+        /// <param name="snmpId">The SNMP identifier.</param>
+        /// <param name="setting">The setting.</param>
+        /// <param name="siteName">Name of the site.</param>
+        /// <returns>returns <c>true</c> on success.</returns>
+        public async Task<BoolResponse> SetSiteSnmp(string snmpId, SnmpSetting setting, string siteName = null)
         {
-            var path = $"api/s/{Site}/rest/setting/snmp/{snmpId}";
+            //TODO: Check if this is really needed. SetSiteSnmp will update the setting without the snmpId
+            var path = $"api/s/{(siteName ?? Site)}/rest/setting/snmp/{snmpId}";
             var oJsonObject = JObject.FromObject(setting);
+            return await ExecuteBoolCommandAsync(path, oJsonObject, "PUT");
+        }
+
+        /// <summary>
+        /// Sets the site SNMP.
+        /// </summary>
+        /// <param name="setting">The setting.</param>
+        /// <param name="siteName">Name of the site.</param>
+        /// <returns>returns <c>true</c> on success.</returns>
+        public async Task<BoolResponse> SetSiteSnmpAsync(SnmpSetting setting, string siteName = null)
+        {
+            var path = $"api/s/{(siteName ?? Site)}/rest/setting/snmp/";
+            var oJsonObject = JObject.FromObject(setting);
+            return await ExecuteBoolCommandAsync(path, oJsonObject, "PUT");
+        }
+
+        /// <summary>
+        /// Sets the site Management Settings
+        /// </summary>
+        /// <param name="setting">The setting.</param>
+        /// <param name="siteName">Name of the site.</param>
+        /// <returns>returns <c>true</c> on success</returns>
+        public async Task<BoolResponse> SetSiteManagementAsync(MgmtSetting setting, string siteName = null)
+        {
+            //TODO: Create Test
+            var path = $"api/s/{(siteName ?? Site)}/set/setting/mgmt";
+            var oJsonObject = JObject.FromObject(setting);
+            return await ExecuteBoolCommandAsync(path, oJsonObject, "PUT");
+        }
+
+        /// <summary>
+        /// set site guest access.
+        /// </summary>
+        /// <param name="setting">The setting.</param>
+        /// <param name="siteName">Name of the site.</param>
+        /// <returns>returns <c>true</c> on success</returns>
+        public async Task<BoolResponse> SetSiteGuestAccessAsync(GuestAccessSetting setting, string siteName = null)
+        {
+            //TODO: Create Test
+            var path = $"api/s/{(siteName ?? Site)}/set/setting/guest_access";
+            var oJsonObject = JObject.FromObject(setting);
+            return await ExecuteBoolCommandAsync(path, oJsonObject, "PUT");
+        }
+
+        /// <summary>
+        /// set site NTP.
+        /// </summary>
+        /// <param name="setting">The setting.</param>
+        /// <param name="siteName">Name of the site.</param>
+        /// <returns>returns <c>true</c> on success</returns>
+        public async Task<BoolResponse> SetSiteNtpAsync(NtpSetting setting, string siteName = null)
+        {
+            //TODO: Create Test
+            var path = $"api/s/{(siteName ?? Site)}/set/setting/ntp";
+            var oJsonObject = JObject.FromObject(setting);
+            return await ExecuteBoolCommandAsync(path, oJsonObject, "PUT");
+        }
+
+        /// <summary>
+        /// set site connectivity as an asynchronous operation.
+        /// </summary>
+        /// <param name="setting">The setting.</param>
+        /// <param name="siteName">Name of the site.</param>
+        /// <returns>returns <c>true</c> on success</returns>
+        public async Task<BoolResponse> SetSiteConnectivityAsync(ConnectivitySetting setting, string siteName = null)
+        {
+            //TODO: Create Test
+            var path = $"api/s/{(siteName ?? Site)}/set/setting/connectivity";
+            var oJsonObject = JObject.FromObject(setting);
+            return await ExecuteBoolCommandAsync(path, oJsonObject, "PUT");
+        }
+
+        public async Task<BaseResponse<Admin>> ListSiteAdminsAsync(string siteName = null)
+        {
+            var path = $"api/s/{(siteName ?? Site)}/cmd/sitemgr";
+
+            var oJsonObject = new JObject();
+            oJsonObject.Add("cmd", "get-admins");
+
+            var response = await ExecuteJsonCommandAsync(path, oJsonObject);
+            return JsonConvert.DeserializeObject<BaseResponse<Admin>>(response.Result);
+        }
+
+        public async Task<BaseResponse<ControllerAdmins>> ListAllAdminsAsync(string siteName = null)
+        {
+            var path = $"api/stat/admin";
+
+            var response = await ExecuteGetCommandAsync(path);
+            return JsonConvert.DeserializeObject<BaseResponse<ControllerAdmins>>(response.Result);
+        }
+
+        public async Task<BoolResponse> InviteAdminAsync(string name, string email, bool enableSSO = true, bool readOnly = false, bool deviceAdopt = false, bool deviceRestart = false, string siteName = null)
+        {
+            var path = $"api/s/{(siteName ?? Site)}/cmd/sitemgr";
+            var oJsonObject = new JObject();
+
+            oJsonObject.Add("cmd", "invite-admin");
+            oJsonObject.Add("email", email);
+            oJsonObject.Add("name", name);
+            oJsonObject.Add("for_sso", enableSSO);
+
+            oJsonObject.Add("role", readOnly ? "readonly" : "admin");
+
+            var permissions = new List<string>();
+                if (deviceAdopt)
+                    permissions.Add("API_DEVICE_ADOPT");
+
+                if(deviceRestart)
+                    permissions.Add("API_DEVICE_RESTART");
+
+                
+                    oJsonObject.Add("permissions", new JArray(permissions.ToArray()));
+
+            //pending Devices
+            //"API_STAT_DEVICE_ACCESS_SUPER_SITE_PENDING"
+            var sitePermissions = new List<string>();
+
+            
+                oJsonObject.Add("super+site_permissions", new JArray(sitePermissions.ToArray()));
+
             return await ExecuteBoolCommandAsync(path, oJsonObject);
         }
+
     }
 }
