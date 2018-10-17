@@ -30,6 +30,18 @@ using (var unifiClient = new Client("https://localhost:8443/", null, true))
 	var result = await unifiClient.ListAllClientsAsync();
 }
 
+//get all clients by setting the site in the call
+using (var unifiClient = new Client("https://localhost:8443/", null, true))
+{
+    await unifiClient.LoginAsync("superuser", "password");
+    var siteList = await unifiClient.ListSitesAsync();
+
+	foreach(var site in result.siteList)
+	{
+		var result = await unifiClient.ListAllClientsAsync(site.Name);
+	}
+}
+
 //Set site on connection
 using (var unifiClient = new Client("https://localhost:8443/", "abc123", true))
 {
@@ -45,12 +57,19 @@ Currently this library supports the following methods.
  - ListCountryCodes
  - GetSystemInfo
  - ListSites
+ - ListSiteAdmins
  - ListSitesStats
  - ListSiteSettings
+ - ListAllAdmins
  - CreateSite
  - RenameSite
  - SetSiteCountry
  - SetSiteLocale
+ - SetSiteSnmp
+ - SetSiteManagement
+ - SetSiteGuestAccess
+ - SetSiteNtp
+ - SetSiteConnectivity
  - DeleteSite
  - AuthorizeGuest
  - UnauthorizeGuest
@@ -58,6 +77,8 @@ Currently this library supports the following methods.
  - ListGuests
  - ClientDetail
  - BlockClient
+ - ForgetClient (Alias of ForgetClients)
+ - ForgetClients
  - UnblockClient
  - ShowClientLogins
  - ListOnlineClients

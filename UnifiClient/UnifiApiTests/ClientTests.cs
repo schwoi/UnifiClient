@@ -862,7 +862,7 @@ namespace UnifiApiTests
             }
         }
 
-        [Fact(Skip = "Fail's on demo site due.")]
+        [Fact (Skip = "Fail's on demo site.")]
         public async Task ShouldBeAbleToSetSnmp()
         {
             using (var unifiClient = new Client(_url, null, true))
@@ -878,8 +878,51 @@ namespace UnifiApiTests
                     Enabled = true,
                     SiteId = site.Id
                 };
-                var result = await unifiClient.SetSiteSnmp("", smtpSetting);
+                var result = await unifiClient.SetSiteSnmpAsync(smtpSetting);
                 result.Result.ShouldBe(true);
+
+            }
+        }
+
+        [Fact (Skip = "Fail's on demo site due to no admins being returned")] 
+        public async Task ShouldBeAbleToListSiteAdmins()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ListSiteAdminsAsync();
+                result.Meta.Rc.ShouldBe("ok");
+                result.Data.Count.ShouldBeGreaterThan(0);
+
+            }
+        }
+        [Fact] 
+        public async Task ShouldBeAbleToListAllAdmins()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ListAllAdminsAsync();
+                result.Meta.Rc.ShouldBe("ok");
+                result.Data.Count.ShouldBeGreaterThan(0);
+
+            }
+        }
+        [Fact(Skip = "Fail's on demo site")] 
+        public async Task ShouldBeAbleToInviteAdmin()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+                //TODO: Check this is actually working as expected.
+                var result = await unifiClient.InviteAdminAsync("TestUser", "test@test.com");
+                result.Result.ShouldBe(true);
+
             }
         }
         [Fact(Skip = "Fail's on demo site due to a bad MAC result in the Device Lists")]
@@ -909,6 +952,35 @@ namespace UnifiApiTests
                 var result = await unifiClient.ListBackupsAsync();
                 result.Meta.Rc.ShouldBe("ok");
                 result.Data.Count.ShouldBeGreaterThanOrEqualTo(1);
+            }
+        }
+
+        [Fact(Skip = "Not completed")]
+        public async Task ShouldBeAbleToForgetClient()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var result = await unifiClient.ForgetClientAsync("{set mac address}");
+                result.Result.ShouldBe(true);
+            }
+        }
+
+        [Fact(Skip = "Will forget live devices")]
+        public async Task ShouldBeAbleToForgetMultipleClients()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var clients = await unifiClient.ListAllClientsAsync();
+                var forgetList = clients.Data.Take(2).Select(c => c.Mac).ToList();
+
+                var result = await unifiClient.ForgetClientsAsync(forgetList);
+                result.Result.ShouldBe(true);
             }
         }
     }

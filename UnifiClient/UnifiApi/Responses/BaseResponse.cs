@@ -13,6 +13,9 @@ namespace UnifiApi.Responses
         [JsonProperty(PropertyName = "msg")]
         public string Message { get; set; }
 
+        [JsonProperty(PropertyName = "reason")]
+        public string Reason { get; set; }
+
         [JsonProperty(PropertyName = "server_version")]
         public string ServerVersion { get; set; }
 

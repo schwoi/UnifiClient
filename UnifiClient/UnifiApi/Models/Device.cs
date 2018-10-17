@@ -249,7 +249,7 @@ namespace UnifiApi.Models
         public long? WifiCaps { get; set; }
 
         [JsonProperty("x", NullValueHandling = NullValueHandling.Ignore)]
-        public long? X { get; set; }
+        public decimal? X { get; set; }
 
         [JsonProperty("x_authkey")]
         public string XAuthkey { get; set; }
@@ -267,7 +267,7 @@ namespace UnifiApi.Models
         public string XVwirekey { get; set; }
 
         [JsonProperty("y", NullValueHandling = NullValueHandling.Ignore)]
-        public long? Y { get; set; }
+        public decimal? Y { get; set; }
 
         [JsonProperty("x_ssh_hostkey_fingerprint", NullValueHandling = NullValueHandling.Ignore)]
         public string XSshHostkeyFingerprint { get; set; }
