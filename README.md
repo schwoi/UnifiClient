@@ -57,12 +57,19 @@ Currently this library supports the following methods.
  - ListCountryCodes
  - GetSystemInfo
  - ListSites
+ - ListSiteAdmins
  - ListSitesStats
  - ListSiteSettings
+ - ListAllAdmins
  - CreateSite
  - RenameSite
  - SetSiteCountry
  - SetSiteLocale
+ - SetSiteSnmp
+ - SetSiteManagement
+ - SetSiteGuestAccess
+ - SetSiteNtp
+ - SetSiteConnectivity
  - DeleteSite
  - AuthorizeGuest
  - UnauthorizeGuest
@@ -70,6 +77,8 @@ Currently this library supports the following methods.
  - ListGuests
  - ClientDetail
  - BlockClient
+ - ForgetClient (Alias of ForgetClients)
+ - ForgetClients
  - UnblockClient
  - ShowClientLogins
  - ListOnlineClients
