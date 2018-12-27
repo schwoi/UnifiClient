@@ -723,6 +723,7 @@ namespace UnifiApiTests
                 result.Meta.Rc.ShouldBe("ok");
                 result.Data.ShouldNotBeNull();
                 result.Data.Count.ShouldBeGreaterThanOrEqualTo(1);
+                var rtr = result.Data.FirstOrDefault(x => x.Type != "usw" && x.Type != "uap");
             }
         }
 
@@ -791,7 +792,7 @@ namespace UnifiApiTests
             {
                 var loginResult = await unifiClient.LoginAsync(_user, _pass);
                 loginResult.Result.ShouldBeTrue();
-
+                
                 var deviceList = await unifiClient.ListDevicesAsync();
 
                 var result = await unifiClient.RestartDeviceAsync(deviceList.Data.First().Mac);
@@ -849,7 +850,7 @@ namespace UnifiApiTests
             }
         }
 
-        [Fact(Skip = "Fail's on demo site due.")]
+        [Fact]
         public async Task ShouldBeAbleToToggleSiteLed()
         {
             using (var unifiClient = new Client(_url, null, true))
@@ -872,13 +873,59 @@ namespace UnifiApiTests
 
                 var site = await unifiClient.GetSiteDetailAsync();
 
-                var smtpSetting = new SnmpSetting
+                var snmpSetting = new SnmpSetting
                 {
                     Community = "SetSnmp",
                     Enabled = true,
                     SiteId = site.Id
                 };
-                var result = await unifiClient.SetSiteSnmpAsync(smtpSetting);
+                var result = await unifiClient.SetSiteSnmpAsync(snmpSetting);
+                result.Result.ShouldBe(true);
+
+            }
+        }
+
+        [Fact (Skip = "Fail's currently returning Invalid Payload.")]
+        public async Task ShouldBeAbleToSetSiteManagement()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                
+                var settings = await unifiClient.ListSiteSettingsAsync();
+                var mgmtSetting = settings.Data.First().Managememt;
+
+                mgmtSetting.AlertEnabled = !mgmtSetting.AlertEnabled;
+
+                var result = await unifiClient.SetSiteManagementAsync(mgmtSetting);
+                result.Result.ShouldBe(true);
+
+                settings = await unifiClient.ListSiteSettingsAsync();
+                var checkMgmtSetting = settings.Data.First().Managememt;
+                checkMgmtSetting.AlertEnabled.ShouldBe(mgmtSetting.AlertEnabled);
+
+                mgmtSetting.AlertEnabled = !mgmtSetting.AlertEnabled;
+                await unifiClient.SetSiteManagementAsync(mgmtSetting);
+            }
+        }
+
+        [Fact]
+        public async Task ShouldBeAbleToSetGuestAccess()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+
+                var settings = await unifiClient.ListSiteSettingsAsync();
+                var guestAccessSetting = settings.Data.First().GuestAccess;
+                var newGuestAccessSetting = (GuestAccessSetting)guestAccessSetting.Clone();
+
+                newGuestAccessSetting.VoucherEnabled = !guestAccessSetting.VoucherEnabled;
+
+                var result = await unifiClient.SetSiteGuestAccessAsync(newGuestAccessSetting);
                 result.Result.ShouldBe(true);
 
             }
@@ -955,7 +1002,7 @@ namespace UnifiApiTests
             }
         }
 
-        [Fact(Skip = "Not completed")]
+        [Fact(Skip = "Doesn't work on demo site. Will forget live device")]
         public async Task ShouldBeAbleToForgetClient()
         {
             using (var unifiClient = new Client(_url, null, true))
@@ -963,12 +1010,17 @@ namespace UnifiApiTests
                 var loginResult = await unifiClient.LoginAsync(_user, _pass);
                 loginResult.Result.ShouldBeTrue();
 
-                var result = await unifiClient.ForgetClientAsync("{set mac address}");
+                var clients = await unifiClient.ListAllClientsAsync();
+                var forgetDevice = clients.Data.First();
+
+                var result = await unifiClient.ForgetClientAsync(forgetDevice.Mac);
                 result.Result.ShouldBe(true);
+                clients = await unifiClient.ListAllClientsAsync();
+                clients.Data.Exists(w => w.Mac == forgetDevice.Mac).ShouldBeFalse();
             }
         }
 
-        [Fact(Skip = "Will forget live devices")]
+        [Fact(Skip = "Doesn't work on demo site. Will forget live devices")]
         public async Task ShouldBeAbleToForgetMultipleClients()
         {
             using (var unifiClient = new Client(_url, null, true))
@@ -981,6 +1033,8 @@ namespace UnifiApiTests
 
                 var result = await unifiClient.ForgetClientsAsync(forgetList);
                 result.Result.ShouldBe(true);
+                clients = await unifiClient.ListAllClientsAsync();
+                clients.Data.Exists(w => forgetList.Any(mac => mac == w.Mac)).ShouldBeFalse();
             }
         }
     }
