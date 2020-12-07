@@ -972,7 +972,7 @@ namespace UnifiApiTests
 
             }
         }
-        [Fact(Skip = "Fail's on demo site due to a bad MAC result in the Device Lists")]
+        [Fact]
         public async Task ShouldBeAbleToRenameDevice()
         {
             using (var unifiClient = new Client(_url, null, true))
