@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.NetworkInformation;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
 namespace UnifiApi.Models
@@ -186,7 +187,7 @@ namespace UnifiApi.Models
         public long SshdPort { get; set; }
 
         [JsonProperty("stat")]
-        public Stat Stat { get; set; }
+        public JObject Stat { get; set; }
 
         [JsonProperty("state")]
         public long State { get; set; }
