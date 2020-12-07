@@ -711,7 +711,7 @@ namespace UnifiApiTests
                 result.Data.Count.ShouldBeInRange(280, 292);
             }
         }
-        [Fact(Skip = "Fail's on demo site due to a bad MAC result in the Device Lists")]
+        [Fact]
         public async Task ShouldBeAbleToListAllDevices()
         {
             using (var unifiClient = new Client(_url, null, true))
@@ -785,7 +785,7 @@ namespace UnifiApiTests
             }
         }
 
-        [Fact(Skip = "Fail's on demo site due to a bad MAC result in the Device Lists")]
+        [Fact]
         public async Task ShouldBeAbleToRestartDevice()
         {
             using (var unifiClient = new Client(_url, null, true))
@@ -800,7 +800,7 @@ namespace UnifiApiTests
             }
         }
 
-        [Fact (Skip = "Fail's on demo site due to a bad MAC result in the Device Lists")]
+        [Fact]
         public async Task ShouldBeAbleToDisableAp()
         {
             using (var unifiClient = new Client(_url, null, true))
@@ -816,7 +816,7 @@ namespace UnifiApiTests
                 await unifiClient.DisableApAsync(deviceList.Data.First().DeviceId, false);
             }
         }
-        [Fact(Skip = "Fail's on demo site due to a bad MAC result in the Device Lists")]
+        [Fact]
         public async Task ShouldBeAbleToOverrideLed()
         {
             using (var unifiClient = new Client(_url, null, true))
@@ -833,7 +833,7 @@ namespace UnifiApiTests
             }
         }
 
-        [Fact(Skip = "Fail's on demo site due to a bad MAC result in the Device Lists")]
+        [Fact]
         public async Task ShouldBeAbleToToggleDevice()
         {
             using (var unifiClient = new Client(_url, null, true))
@@ -863,7 +863,7 @@ namespace UnifiApiTests
             }
         }
 
-        [Fact (Skip = "Fail's on demo site.")]
+        [Fact]
         public async Task ShouldBeAbleToSetSnmp()
         {
             using (var unifiClient = new Client(_url, null, true))
@@ -911,7 +911,7 @@ namespace UnifiApiTests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Fail's on demo site.")]
         public async Task ShouldBeAbleToSetGuestAccess()
         {
             using (var unifiClient = new Client(_url, null, true))
