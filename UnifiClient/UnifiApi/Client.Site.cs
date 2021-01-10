@@ -258,7 +258,8 @@ namespace UnifiApi
         /// <returns>returns <c>true</c> on success</returns>
         public async Task<BoolResponse> SetSiteManagementAsync(MgmtSetting setting, string siteName = null)
         {
-            //TODO: Create Test
+            throw new NotImplementedException();
+            //TODO: FIX This. Currently returning "\napi.err.InvalidPayload"
             var path = $"api/s/{(siteName ?? Site)}/set/setting/mgmt";
             var oJsonObject = JObject.FromObject(setting);
             return await ExecuteBoolCommandAsync(path, oJsonObject, "PUT");
@@ -272,9 +273,9 @@ namespace UnifiApi
         /// <returns>returns <c>true</c> on success</returns>
         public async Task<BoolResponse> SetSiteGuestAccessAsync(GuestAccessSetting setting, string siteName = null)
         {
-            //TODO: Create Test
             var path = $"api/s/{(siteName ?? Site)}/set/setting/guest_access";
             var oJsonObject = JObject.FromObject(setting);
+            
             return await ExecuteBoolCommandAsync(path, oJsonObject, "PUT");
         }
 

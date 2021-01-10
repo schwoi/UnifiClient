@@ -47,10 +47,18 @@ namespace UnifiApi
             return await ExecuteBoolCommandAsync(path, oJsonObject);
         }
 
+        /// <summary>
+        /// forget a client device.
+        /// </summary>
+        /// <param name="clientMacAddress">the client mac address.</param>
+        /// <param name="siteName">Name of the site. If null it will use the site specified in the client.</param>
+        /// <returns>BoolResponse</returns>
+        /// <exception cref="NotSupportedException">The controller version does not accept this request.</exception>
         public async Task<BoolResponse> ForgetClientAsync(string clientMacAddress, string siteName = null)
         {
             return await ForgetClientsAsync(new List<string>() {clientMacAddress}, siteName);
         }
+
         /// <summary>
         /// Forget one or more client devices.
         /// </summary>
@@ -61,7 +69,6 @@ namespace UnifiApi
         [MinimumVersionRequired(5, 9)]
         public async Task<BoolResponse> ForgetClientsAsync(List<string> clientMacAddresses, string siteName = null)
         {
-            //TODO: Confirm working as expected.
             if (!Version.IsValid())
                 throw new NotSupportedException("The controller version does not accept this request.");
 

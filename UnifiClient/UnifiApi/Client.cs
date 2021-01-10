@@ -127,7 +127,7 @@ namespace UnifiApi
             var oJsonObject = new JObject();
 
             var response = await ExecuteJsonCommandAsync(path, oJsonObject);
-
+            //TODO: Validate version and Deserialse based on the supported version
             var records = JsonConvert.DeserializeObject<BaseResponse>(response.Result);
             return records;
         }

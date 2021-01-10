@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.2047
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30717.126
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnifiApi", "UnifiApi\UnifiApi.csproj", "{803CE4ED-11CB-43D6-A00C-0212DA851C03}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnifiApi", "UnifiApi\UnifiApi.csproj", "{803CE4ED-11CB-43D6-A00C-0212DA851C03}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnifiApiTests", "UnifiApiTests\UnifiApiTests.csproj", "{A95DC3BE-824C-4EB0-84FC-73BFDE97D674}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnifiApiTestsCore", "UnifiApiTestsCore\UnifiApiTestsCore.csproj", "{2CD0BC3E-F8C0-4491-82A3-D568B1483B52}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{A95DC3BE-824C-4EB0-84FC-73BFDE97D674}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A95DC3BE-824C-4EB0-84FC-73BFDE97D674}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A95DC3BE-824C-4EB0-84FC-73BFDE97D674}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2CD0BC3E-F8C0-4491-82A3-D568B1483B52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2CD0BC3E-F8C0-4491-82A3-D568B1483B52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2CD0BC3E-F8C0-4491-82A3-D568B1483B52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2CD0BC3E-F8C0-4491-82A3-D568B1483B52}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
