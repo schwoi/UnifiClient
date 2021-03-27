@@ -48,6 +48,23 @@ namespace UnifiApi
         }
 
         /// <summary>
+        /// Reset a client connection. For example to force new DHCP request
+        /// </summary>
+        /// <param name="clientMac">The client MAC address.</param>
+        /// <param name="siteName">Name of the site. If null it will use the site specified in the client.</param>
+        /// <returns>BoolResponse.</returns>
+        public async Task<BoolResponse> ResetClientAsync(string clientMac, string siteName = null)
+        {
+            var path = $"api/s/{(siteName ?? Site)}/cmd/stamgr";
+
+            var oJsonObject = new JObject();
+            oJsonObject.Add("cmd", "kick-sta");
+            oJsonObject.Add("mac", clientMac);
+
+            return await ExecuteBoolCommandAsync(path, oJsonObject);
+        }
+
+        /// <summary>
         /// forget a client device.
         /// </summary>
         /// <param name="clientMacAddress">the client mac address.</param>
