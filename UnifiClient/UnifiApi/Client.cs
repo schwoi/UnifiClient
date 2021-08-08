@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using UnifiApi.Helpers;
 using UnifiApi.Models;
 using UnifiApi.Responses;
 
@@ -73,9 +70,8 @@ namespace UnifiApi
                 await LogoutAsync();
 
             httpClient.Dispose();
-            
-        }
 
+        }
 
         /// <summary>
         /// Login to UniFi Controller.
@@ -174,10 +170,9 @@ namespace UnifiApi
             return JsonConvert.DeserializeObject<BaseResponse<Backup>>(response.Result);
         }
 
-
         #region Commands
 
-        private async Task<BoolResponse> ExecuteBoolCommandAsync(string path, JObject jsonData, string requestType = "POST")
+        protected async Task<BoolResponse> ExecuteBoolCommandAsync(string path, JObject jsonData, string requestType = "POST")
         {
             var returnResponse = new BoolResponse();
 
@@ -220,14 +215,14 @@ namespace UnifiApi
             return returnResponse;
         }
 
-        private async Task<bool> ExecuteCommandAsync(string path, JObject jsonData)
+        protected async Task<bool> ExecuteCommandAsync(string path, JObject jsonData)
         {
             var response = await httpClient.PostAsync(path, new StringContent(jsonData.ToString(), Encoding.UTF8, _contentType));
 
             return response.IsSuccessStatusCode;
         }
 
-        private async Task<JsonResponse> ExecuteJsonCommandAsync(string path, JObject jsonData, string requestType = "POST")
+        protected async Task<JsonResponse> ExecuteJsonCommandAsync(string path, JObject jsonData, string requestType = "POST")
         {
             var returnResponse = new JsonResponse();
             HttpResponseMessage response;
@@ -241,7 +236,7 @@ namespace UnifiApi
                     response = await httpClient.PostAsync(path, new StringContent(jsonData.ToString(), Encoding.UTF8, _contentType));
                     break;
             }
-                
+
             returnResponse.StatusCode = response.StatusCode;
 
             if (response.IsSuccessStatusCode)
@@ -256,7 +251,7 @@ namespace UnifiApi
             return returnResponse;
         }
 
-        private async Task<JsonResponse> ExecuteGetCommandAsync(string path)
+        protected async Task<JsonResponse> ExecuteGetCommandAsync(string path)
         {
             var returnResponse = new JsonResponse();
             var response = await httpClient.GetAsync(path);
@@ -274,7 +269,7 @@ namespace UnifiApi
             return returnResponse;
         }
 
-        private async Task<BoolResponse> ExecuteDeleteCommandAsync(string path)
+        protected async Task<BoolResponse> ExecuteDeleteCommandAsync(string path)
         {
             var returnResponse = new BoolResponse();
 
