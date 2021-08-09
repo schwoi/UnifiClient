@@ -80,6 +80,7 @@ Currently this library supports the following methods.
  - ForgetClient (Alias of ForgetClients)
  - ForgetClients
  - UnblockClient
+ - ResetClientConnection
  - ShowClientLogins
  - ListOnlineClients
  - ListAllClients
