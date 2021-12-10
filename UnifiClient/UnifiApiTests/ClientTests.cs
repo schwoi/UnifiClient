@@ -1037,5 +1037,60 @@ namespace UnifiApiTests
                 clients.Data.Exists(w => forgetList.Any(mac => mac == w.Mac)).ShouldBeFalse();
             }
         }
+
+        [Fact]
+        public async Task ShouldBeAbleToCreateVoucher()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+                var voucher = await unifiClient.CreateVoucherAsync(60, note: "Test Voucher");
+                voucher.ShouldNotBeNull();
+                voucher.Data.Count.ShouldBe(1);
+
+                await unifiClient.RevokeVoucherAsync(voucher.Data.First().Id);
+            }
+        }
+
+        [Fact]
+        public async Task ShouldBeAbleToGetVouchers()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+                var voucher = await unifiClient.CreateVoucherAsync(60, note: "Test Voucher");
+                
+                var vouchers = await unifiClient.ListVouchersAsync();
+                vouchers.ShouldNotBeNull();
+                vouchers.Data.Count.ShouldBeGreaterThan(0);
+                vouchers.Data.First().Note.ShouldBe("Test Voucher");
+
+                foreach (Voucher item in vouchers.Data.Where(v => v.Note == "Test Voucher"))
+                {
+                    await unifiClient.RevokeVoucherAsync(item.Id);
+                }
+                
+            }
+        }
+
+        [Fact]
+        public async Task ShouldBeAbleToGetSpecificVoucher()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+                var voucher = await unifiClient.CreateVoucherAsync(60, note: "Test Voucher");
+
+                var vouchers = await unifiClient.ListVouchersAsync(voucher.Data.First().CreateTime);
+                vouchers.ShouldNotBeNull();
+                vouchers.Data.Count.ShouldBe(1);
+                vouchers.Data.First().Note.ShouldBe("Test Voucher");
+
+                await unifiClient.RevokeVoucherAsync(voucher.Data.First().Id);
+            }
+        }
     }
 }
