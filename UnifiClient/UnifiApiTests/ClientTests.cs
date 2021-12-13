@@ -460,16 +460,16 @@ namespace UnifiApiTests
             }
         }
 
-        [Fact(Skip = "Demo Site doesn't return notes / doesn't save notes")]
+        [Fact]
         public async Task ShouldBeAbleToAddClientNote()
         {
-            using (var unifiClient = new Client(_url))
+            using (var unifiClient = new Client(_url, ignoreSslCertificate: true))
             {
                 var loginResult = await unifiClient.LoginAsync(_user, _pass);
                 loginResult.Result.ShouldBeTrue();
 
                 var onlineClientsResult = await unifiClient.ListAllClientsAsync();
-                var macAddress = onlineClientsResult.Data.First().Mac;
+                var macAddress = onlineClientsResult.Data.First().Id;
                 var noteValue = $"Note Added {DateTime.Now:s}";
                 var addNoteResult = await unifiClient.AddClientNoteAsync(macAddress, noteValue);
                 addNoteResult.Result.ShouldBe(true);
@@ -981,7 +981,7 @@ namespace UnifiApiTests
                 loginResult.Result.ShouldBeTrue();
                 var deviceList = await unifiClient.ListDevicesAsync();
 
-                var result = await unifiClient.RenameDeviceAsync(deviceList.Data.First().DeviceId, "Test");
+                var result = await unifiClient.RenameDeviceAsync(deviceList.Data.First().Id, "Test");
                 result.Result.ShouldBe(true);
 
                 await unifiClient.RenameDeviceAsync(deviceList.Data.First().DeviceId, deviceList.Data.First().Name);
