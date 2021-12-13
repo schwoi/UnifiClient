@@ -1091,6 +1091,34 @@ namespace UnifiApiTests
 
                 await unifiClient.RevokeVoucherAsync(voucher.Data.First().Id);
             }
+        } 
+        
+        [Fact]
+        public async Task ShouldBeAbleToGetWLans()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+                var wlans = await unifiClient.ListWLanAsync();
+
+                wlans.ShouldNotBeNull();
+                
+            }
         }
+        [Fact]
+        public async Task ShouldBeAbleToGetNetworks()
+        {
+            using (var unifiClient = new Client(_url, null, true))
+            {
+                var loginResult = await unifiClient.LoginAsync(_user, _pass);
+                loginResult.Result.ShouldBeTrue();
+                var networks = await unifiClient.ListNetworksAsync();
+
+                networks.ShouldNotBeNull();
+                networks.Data.Count.ShouldBeGreaterThan(0);
+            }
+        }
+      
     }
 }
