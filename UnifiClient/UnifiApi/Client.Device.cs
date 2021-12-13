@@ -60,7 +60,7 @@ namespace UnifiApi
         /// <summary>
         /// rename device.
         /// </summary>
-        /// <param name="deviceId">The device identifier.</param>
+        /// <param name="deviceId">The device id available from ListDevicesAsync().Id.</param>
         /// <param name="name">The name to set for the device.</param>
         /// <returns>return <c>true</c> on success.</returns>
         public async Task<BoolResponse> RenameDeviceAsync(string deviceId, string name)
