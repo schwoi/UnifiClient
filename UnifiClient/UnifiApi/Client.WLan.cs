@@ -82,7 +82,7 @@ namespace UnifiApi
         /// </summary>
         /// <param name="wlanId">id value of the wlan to delete</param>
         /// <returns>Boolean</returns>
-        public async Task<BoolResponse> DeleteWLan(string wlanId)
+        public async Task<BoolResponse> DeleteWLanAsync(string wlanId)
         {
             //TODO: Build Tests
             var path = $"api/s/{Site}/rest/wlanconf/{wlanId}";
@@ -94,7 +94,7 @@ namespace UnifiApi
         /// </summary>
         /// <param name="wlanId">id value of the wlan to disable</param>
         /// <returns>Boolean</returns>
-        public async Task<BoolResponse> DisableWLan(string wlanId)
+        public async Task<BoolResponse> DisableWLanAsync(string wlanId)
         {
             //TODO: Build Tests
             if (string.IsNullOrWhiteSpace(wlanId))
@@ -103,7 +103,7 @@ namespace UnifiApi
             var oJsonObject = new JObject();
             oJsonObject.Add("enabled", false);
 
-            return await setWlanBaseSetting(wlanId, oJsonObject);
+            return await setWlanBaseSettingAsync(wlanId, oJsonObject);
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace UnifiApi
         /// </summary>
         /// <param name="wlanId">id value of the wlan to enable</param>
         /// <returns>Boolean</returns>
-        public async Task<BoolResponse> EnableWLan(string wlanId)
+        public async Task<BoolResponse> EnableWLanAsync(string wlanId)
         {
             //TODO: Build Tests
             if (string.IsNullOrWhiteSpace( wlanId))
@@ -120,10 +120,10 @@ namespace UnifiApi
             var oJsonObject = new JObject();
             oJsonObject.Add("enabled", true);
 
-            return await setWlanBaseSetting(wlanId, oJsonObject);
+            return await setWlanBaseSettingAsync(wlanId, oJsonObject);
         }
 
-        public async Task<BoolResponse> ChangeWLanSSID(string wlanId, string name)
+        public async Task<BoolResponse> ChangeWLanSSIDAsync(string wlanId, string name)
         {
             //TODO: Build Tests
             if (string.IsNullOrWhiteSpace(wlanId))
@@ -132,10 +132,10 @@ namespace UnifiApi
             var oJsonObject = new JObject();
             oJsonObject.Add("name", name);
 
-            return await setWlanBaseSetting(wlanId, oJsonObject);
+            return await setWlanBaseSettingAsync(wlanId, oJsonObject);
         }
 
-        public async Task<BoolResponse> ChangeWLanPassphrase(string wlanId, string passphrase)
+        public async Task<BoolResponse> ChangeWLanPassphraseAsync(string wlanId, string passphrase)
         {
             //TODO: Build Tests
             if (string.IsNullOrWhiteSpace(wlanId))
@@ -144,10 +144,10 @@ namespace UnifiApi
             var oJsonObject = new JObject();
             oJsonObject.Add("x_passphrase", passphrase);
 
-            return await setWlanBaseSetting(wlanId, oJsonObject);
+            return await setWlanBaseSettingAsync(wlanId, oJsonObject);
         }
 
-        private async Task<BoolResponse> setWlanBaseSetting(string wlanId, JObject payload)
+        private async Task<BoolResponse> setWlanBaseSettingAsync(string wlanId, JObject payload)
         {
             var path = $"api/s/{Site}/rest/wlanconf/{wlanId}";
             return await ExecuteBoolCommandAsync(path, payload, "PUT");
