@@ -109,6 +109,18 @@ Currently this library supports the following methods.
  - LocateDevice
  - SiteLeds
  - ListBackups
+ - CreateVoucher
+ - RevokeVoucher
+ - ListVouchers
+ - ListWLans
+ - CreateWLan
+ - DeleteWLan
+ - DisableWLan
+ - EnableWLan
+ - ChangeWLanSSID
+ - ChangeWLanPassphrase
+ - ListNetworks
+
 
 ## Install
 Nuget: https://www.nuget.org/packages/UnifiApi/
